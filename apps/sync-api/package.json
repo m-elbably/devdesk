@@ -1,0 +1,24 @@
+{
+  "name": "@devdesk/sync-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node -e \"require('fs').copyFileSync('.env','.dev.vars')\"",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:migrate": "wrangler d1 migrations apply devdesk --local",
+    "db:migrate:remote": "wrangler d1 migrations apply devdesk --remote"
+  },
+  "dependencies": {
+    "@devdesk/shared": "workspace:*",
+    "hono": "^4.6.16",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "wrangler": "^4.114.0"
+  }
+}

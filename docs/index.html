@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DevDesk — a local-first developer toolbox</title>
+    <meta
+      name="description"
+      content="DevDesk is a local-first, privacy-first developer toolbox for the desktop. 73 tools across 10 categories, fully offline, optional self-hosted sync."
+    />
+    <link rel="icon" href="./icon.png" />
+    <style>
+      :root {
+        --hue: 218;
+        --bg: #0a0c11;
+        --bg-2: #0e1118;
+        --panel: #141821;
+        --panel-2: #191e29;
+        --border: #232a37;
+        --text: #e8ecf3;
+        --muted: #93a0b3;
+        --accent: hsl(var(--hue) 98% 72%);
+        --accent-soft: hsl(var(--hue) 98% 72% / 0.14);
+        --accent-ink: #08111f;
+        --ok: #4ade80;
+        --warn: #fbbf24;
+        --stop: #fb7185;
+        --shadow: 0 18px 40px -24px #000c;
+        --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      }
+      :root[data-theme="light"] {
+        --bg: #f6f8fc;
+        --bg-2: #eef2f9;
+        --panel: #ffffff;
+        --panel-2: #f4f7fc;
+        --border: #dde5f0;
+        --text: #101520;
+        --muted: #566275;
+        --accent: hsl(var(--hue) 82% 48%);
+        --accent-soft: hsl(var(--hue) 82% 48% / 0.1);
+        --accent-ink: #ffffff;
+        --ok: #15803d;
+        --warn: #b45309;
+        --stop: #be123c;
+        --shadow: 0 16px 36px -26px #64748b88;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+      h1, h2, h3 { letter-spacing: -0.02em; }
+      code, pre, kbd { font-family: var(--mono); }
+      kbd {
+        border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 6px;
+        padding: 1px 6px; font-size: .8em; background: var(--panel-2);
+      }
+      .wrap { max-width: 1040px; margin: 0 auto; padding: 0 22px; }
+      .eyebrow {
+        font: 600 .72rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase;
+        color: var(--accent); margin: 0 0 10px;
+      }
+      .lede { color: var(--muted); max-width: 64ch; margin: -12px 0 30px; }
+
+      /* ---------- top bar ---------- */
+      .topbar {
+        position: sticky; top: 0; z-index: 40;
+        backdrop-filter: blur(14px);
+        background: color-mix(in srgb, var(--bg) 78%, transparent);
+        border-bottom: 1px solid transparent;
+        transition: border-color .2s ease;
+      }
+      .topbar.stuck { border-bottom-color: var(--border); }
+      .topbar .wrap { display: flex; align-items: center; gap: 18px; height: 58px; }
+      .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; text-decoration: none; color: var(--text); }
+      .brand .mark { width: 24px; height: 24px; border-radius: 7px; }
+      .topbar nav { margin-left: auto; display: flex; gap: 4px; align-items: center; }
+      .topbar nav a {
+        color: var(--muted); text-decoration: none; font-size: .9rem; font-weight: 500;
+        padding: 6px 10px; border-radius: 8px;
+      }
+      .topbar nav a:hover { color: var(--text); background: var(--panel); }
+      @media (max-width: 760px) { .topbar nav a.hide-sm { display: none; } }
+      .icon-btn {
+        display: grid; place-items: center; width: 34px; height: 34px; flex: none;
+        border-radius: 9px; border: 1px solid var(--border); background: var(--panel);
+        color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1;
+      }
+      .icon-btn:hover { color: var(--text); border-color: var(--accent); }
+
+      /* ---------- hero ---------- */
+      .hero { position: relative; text-align: center; padding: 78px 0 66px; overflow: hidden; }
+      .aurora {
+        position: absolute; inset: -40% -20% auto; height: 620px; z-index: -1;
+        background:
+          radial-gradient(38% 60% at 30% 40%, hsl(var(--hue) 98% 62% / .30), transparent 65%),
+          radial-gradient(34% 52% at 68% 32%, hsl(calc(var(--hue) + 82) 90% 62% / .22), transparent 66%),
+          radial-gradient(30% 46% at 50% 62%, hsl(calc(var(--hue) - 62) 92% 62% / .18), transparent 66%);
+        filter: blur(12px);
+        animation: drift 26s ease-in-out infinite alternate;
+      }
+      @keyframes drift {
+        from { transform: translate3d(-3%, 0, 0) scale(1); }
+        to   { transform: translate3d(3%, 4%, 0) scale(1.12); }
+      }
+      .grid-fade {
+        position: absolute; inset: 0; z-index: -1; opacity: .5;
+        background-image:
+          linear-gradient(var(--border) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border) 1px, transparent 1px);
+        background-size: 46px 46px;
+        mask-image: radial-gradient(70% 60% at 50% 30%, #000 10%, transparent 78%);
+      }
+      .logo {
+        display: inline-grid; place-items: center; width: 78px; height: 78px; margin-bottom: 22px;
+        border-radius: 22px; background: none; padding: 0; cursor: pointer; border: 0;
+        box-shadow: 0 14px 34px -14px hsl(var(--hue) 98% 62% / .7);
+        transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+      }
+      .logo img { width: 100%; height: 100%; border-radius: 22px; display: block; }
+      .logo:hover { transform: rotate(-6deg) scale(1.06); }
+      .logo:active { transform: rotate(6deg) scale(.94); }
+      h1 { font-size: clamp(2.4rem, 7vw, 4rem); margin: 0 0 14px; line-height: 1.02; }
+      h1 .grad {
+        background: linear-gradient(96deg, var(--accent), hsl(calc(var(--hue) + 74) 90% 68%));
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .tagline { font-size: 1.15rem; color: var(--muted); margin: 0 auto 30px; max-width: 620px; }
+      .tagline b { color: var(--text); font-weight: 600; }
+
+      .downloads { display: flex; flex-wrap: wrap; gap: 11px; justify-content: center; }
+      .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 12px 20px; border-radius: 12px; text-decoration: none; cursor: pointer;
+        border: 1px solid var(--border); background: var(--panel); color: var(--text);
+        font-weight: 600; font-size: .95rem;
+        transition: transform .1s ease, border-color .15s ease, background .15s ease;
+      }
+      .btn:hover { transform: translateY(-2px); border-color: var(--accent); }
+      .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; box-shadow: 0 12px 26px -14px hsl(var(--hue) 98% 62% / .8); }
+      .btn .os { opacity: .72; font-weight: 500; font-size: .84em; }
+      .dl-note { margin-top: 15px; color: var(--muted); font-size: .88rem; }
+
+      .shot {
+        max-width: 920px; margin: 46px auto 0; border-radius: 16px; overflow: hidden;
+        border: 1px solid var(--border); box-shadow: var(--shadow);
+      }
+      .shot img { display: block; width: 100%; height: auto; }
+
+      .stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 42px; }
+      .stat {
+        background: color-mix(in srgb, var(--panel) 80%, transparent); border: 1px solid var(--border);
+        border-radius: 13px; padding: 12px 18px; min-width: 122px; backdrop-filter: blur(6px);
+      }
+      .stat b { display: block; font: 700 1.55rem/1.15 var(--mono); font-variant-numeric: tabular-nums; }
+      .stat span { font-size: .71rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+
+      /* ---------- sections ---------- */
+      section { padding: 78px 0; position: relative; }
+      section + section { border-top: 1px solid var(--border); }
+      section h2 { font-size: clamp(1.5rem, 3.4vw, 2.05rem); margin: 0 0 10px; }
+      .alt { background: var(--bg-2); }
+
+      /* ---------- category breakdown ---------- */
+      .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+      .cat {
+        position: relative; background: var(--panel); border: 1px solid var(--border);
+        border-radius: 14px; padding: 16px 17px 15px; overflow: hidden;
+        transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+      }
+      .cat::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--c); }
+      .cat:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--c) 55%, var(--border)); box-shadow: var(--shadow); }
+      .cat .top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+      .cat h3 { margin: 0; font-size: 1rem; }
+      .cat .n { margin-left: auto; font: 700 1.15rem/1 var(--mono); color: var(--c); font-variant-numeric: tabular-nums; }
+      .cat .n small { font: 500 .7rem/1 var(--mono); color: var(--muted); }
+      .cat p { margin: 0 0 12px; color: var(--muted); font-size: .875rem; line-height: 1.5; }
+      .cat .bar { height: 5px; border-radius: 3px; background: var(--panel-2); border: 1px solid var(--border); overflow: hidden; }
+      .cat .bar i { display: block; height: 100%; width: 0; background: var(--c); transition: width 1.1s cubic-bezier(.22,1,.36,1); }
+
+      /* ---------- generic cards ---------- */
+      .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(272px, 1fr)); gap: 14px; }
+      .card { background: var(--panel); border: 1px solid var(--border); border-radius: 15px; padding: 20px; }
+      .card h3 { margin: 0 0 8px; font-size: 1.02rem; display: flex; align-items: center; gap: 9px; }
+      .card p { margin: 0; color: var(--muted); font-size: .92rem; }
+      .card .ico { font-size: 1.05rem; }
+      .card .lvl { font: 600 .66rem/1.8 var(--mono); letter-spacing: .08em; padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; }
+      .disk { margin-top: 14px; display: flex; align-items: center; gap: 9px; font: .78rem/1 var(--mono); color: var(--muted); }
+      .disk .bar { flex: 1; height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; border: 1px solid var(--border); }
+      .disk .bar i { display: block; height: 100%; background: currentColor; }
+
+      /* ---------- versus ---------- */
+      .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 760px) { .vs { grid-template-columns: 1fr; } }
+      .vs > div { border: 1px solid var(--border); border-radius: 15px; padding: 20px 22px; background: var(--panel); }
+      .vs .them { background: transparent; border-style: dashed; }
+      .vs h3 { margin: 0 0 14px; font-size: .95rem; display: flex; align-items: center; gap: 8px; }
+      .vs ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 11px; }
+      .vs li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; font-size: .91rem; line-height: 1.5; }
+      .vs .them li { color: var(--muted); }
+      .vs .mark { font: 700 .9rem/1.5 var(--mono); }
+      .vs .them .mark { color: var(--stop); }
+      .vs .us .mark { color: var(--ok); }
+      .vs li b { font-weight: 600; }
+
+      /* ---------- feature list ---------- */
+      .feats { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2px; background: var(--border); border: 1px solid var(--border); border-radius: 15px; overflow: hidden; }
+      .feat { background: var(--bg); padding: 17px 19px; }
+      .feat.alt-bg { background: var(--bg-2); }
+      .feat h3 { margin: 0 0 4px; font-size: .93rem; display: flex; gap: 8px; align-items: center; }
+      .feat p { margin: 0; color: var(--muted); font-size: .865rem; line-height: 1.5; }
+      .feat code { font-size: .92em; color: var(--text); }
+
+      /* ---------- architecture ---------- */
+      .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 6px 0 4px; font: .86rem/1 var(--mono); }
+      .flow .node { border: 1px solid var(--border); background: var(--panel); border-radius: 10px; padding: 9px 13px; }
+      .flow .node.hi { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+      .flow .arrow { color: var(--muted); }
+      .flow-label { font: 600 .68rem/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 24px 0 8px; }
+
+      pre {
+        background: var(--panel); border: 1px solid var(--border); border-radius: 13px;
+        padding: 16px 18px; overflow-x: auto; font-size: .86rem; line-height: 1.65; margin: 0;
+      }
+      pre .c { color: var(--muted); }
+      pre .k { color: var(--accent); }
+      pre .s { color: var(--ok); }
+      .copy-wrap { position: relative; }
+      .copy-wrap .copy {
+        position: absolute; top: 9px; right: 9px; opacity: 0; transition: opacity .15s;
+        border: 1px solid var(--border); background: var(--panel-2); color: var(--muted);
+        border-radius: 8px; padding: 4px 10px; font: 500 .78rem/1.4 inherit; cursor: pointer;
+      }
+      .copy-wrap:hover .copy, .copy-wrap .copy:focus-visible { opacity: 1; }
+      .copy:hover { color: var(--text); border-color: var(--accent); }
+
+      /* ---------- numbered steps ---------- */
+      .steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 12px; }
+      .steps li {
+        counter-increment: s; position: relative; padding-left: 34px;
+        color: var(--muted); font-size: .9rem; line-height: 1.55;
+      }
+      .steps li::before {
+        content: counter(s); position: absolute; left: 0; top: 1px;
+        width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center;
+        background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+        font: 700 .72rem/1 var(--mono);
+      }
+      .steps li b { color: var(--text); font-weight: 600; }
+
+      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+      .two > * { min-width: 0; } /* let the <pre> scroll instead of stretching the page */
+      @media (max-width: 820px) { .two { grid-template-columns: 1fr; } }
+
+      footer { padding: 46px 0 70px; color: var(--muted); text-align: center; font-size: .9rem; border-top: 1px solid var(--border); }
+      footer .row { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+        html { scroll-behavior: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar" id="topbar">
+      <div class="wrap">
+        <a class="brand" href="#top">
+          <img class="mark" src="./icon.png" alt="" />
+          DevDesk
+        </a>
+        <nav>
+          <a href="#inside">What's inside</a>
+          <a href="#ai">Why still</a>
+          <a href="#features" class="hide-sm">Features</a>
+          <a href="#privacy" class="hide-sm">Privacy</a>
+          <a href="#sync" class="hide-sm">Sync</a>
+          <button class="icon-btn" id="theme-toggle" title="Toggle light / dark" aria-label="Toggle light or dark theme">◐</button>
+        </nav>
+      </div>
+    </div>
+
+    <header class="hero" id="top">
+      <div class="aurora" aria-hidden="true"></div>
+      <div class="grid-fade" aria-hidden="true"></div>
+      <div class="wrap">
+        <button class="logo" id="logo" title="Click me — I change colour" aria-label="Shuffle the accent colour">
+          <img src="./icon.png" alt="DevDesk" />
+        </button>
+        <h1>The toolbox that<br /><span class="grad">never phones home.</span></h1>
+        <p class="tagline">
+          <b>73 developer tools</b> across 10 categories, in one native desktop app. Everything runs
+          on your machine — no account, no telemetry, no network. Sync across devices only if
+          <em>you</em> switch it on.
+        </p>
+        <div class="downloads" id="downloads">
+          <a class="btn primary" id="fallback-link" href="#">Downloads</a>
+          <a class="btn" href="#inside">See what's inside ↓</a>
+        </div>
+        <p class="dl-note" id="dl-note">Looking up the latest release…</p>
+
+        <div class="shot">
+          <img src="./screenshoot.png" alt="DevDesk dashboard showing tasks, notes, snippets and recent tools" width="1474" height="1052" loading="eager" />
+        </div>
+
+        <div class="stats">
+          <div class="stat"><b data-count="73">0</b><span>Tools</span></div>
+          <div class="stat"><b data-count="10">0</b><span>Categories</span></div>
+          <div class="stat"><b data-count="3">0</b><span>Privacy levels</span></div>
+          <div class="stat"><b data-count="0">0</b><span>Accounts needed</span></div>
+          <div class="stat"><b data-count="0">0</b><span>Bytes phoned home</span></div>
+        </div>
+      </div>
+    </header>
+
+    <section id="inside">
+      <div class="wrap">
+        <p class="eyebrow">What's inside</p>
+        <h2>Seventy-three tools, ten categories, zero dead ends.</h2>
+        <p class="lede">
+          Not a link farm of half-finished pages — every one of these is implemented, tested, and
+          reachable from the command palette in two keystrokes. Here's how the toolbox is stocked.
+        </p>
+        <div class="cats" id="cats"></div>
+      </div>
+    </section>
+
+    <section id="ai" class="alt">
+      <div class="wrap">
+        <p class="eyebrow">In the agent era</p>
+        <h2>Yes, you could ask an AI. Here's why you won't.</h2>
+        <p class="lede">
+          Agents are extraordinary at the fuzzy work — reading code, drafting, reasoning. But a chunk
+          of a developer's day is small, exact, repetitive operations on data you'd rather not hand to
+          anyone. That work didn't disappear; it just got a worse default.
+        </p>
+        <div class="vs">
+          <div class="them">
+            <h3>🗨️ Pasting it into a chat box</h3>
+            <ul>
+              <li><span class="mark">✗</span><span><b>Plausible, not correct.</b> A model will happily produce a SHA-256 that is the right length and the wrong value. You can't tell by looking.</span></li>
+              <li><span class="mark">✗</span><span><b>Your secrets travel.</b> That JWT, private key, or <code>.env</code> is now in a request log, a retention window, maybe a training set.</span></li>
+              <li><span class="mark">✗</span><span><b>Round trips.</b> A CIDR split takes 400ms of network and a rate limit; the answer took 0.2ms to compute.</span></li>
+              <li><span class="mark">✗</span><span><b>Needs signal.</b> On a plane, in an air-gapped network, or mid-outage, the toolbox is gone.</span></li>
+              <li><span class="mark">✗</span><span><b>No memory of your work.</b> Yesterday's regex, that one gnarly cron line — scrolled away forever.</span></li>
+            </ul>
+          </div>
+          <div class="us">
+            <h3>🛠️ Reaching for DevDesk</h3>
+            <ul>
+              <li><span class="mark">✓</span><span><b>Deterministic.</b> Hashes come from WebCrypto, subnet maths from integers. Same input, same output, every time, provably.</span></li>
+              <li><span class="mark">✓</span><span><b>Secrets never leave.</b> Sensitive tools are marked <code>NEVER_PERSIST</code> — the platform refuses to write them to disk, let alone a network.</span></li>
+              <li><span class="mark">✓</span><span><b>Instant.</b> Local function call. No token budget, no context window, no queue.</span></li>
+              <li><span class="mark">✓</span><span><b>Offline is the default,</b> not the degraded mode. Nothing to sign into, nothing to renew.</span></li>
+              <li><span class="mark">✓</span><span><b>Keeps your history.</b> Per-tool history, favourites and recents, plus notes, snippets and a task board in the same window.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid3" style="margin-top: 22px">
+          <div class="card">
+            <h3><span class="ico">🤝</span> Built for agents too</h3>
+            <p>Every tool is a pure function with a Zod schema in <code>packages/tools</code> — headless, importable, and already shaped like a tool definition. The same registry your app renders is the one an agent can call.</p>
+          </div>
+          <div class="card">
+            <h3><span class="ico">🎯</span> The right altitude</h3>
+            <p>You don't prompt a calculator. Deterministic work belongs in deterministic code; save the model's attention — and your tokens — for problems that actually need judgement.</p>
+          </div>
+          <div class="card">
+            <h3><span class="ico">🧾</span> Auditable by construction</h3>
+            <p>Open-source logic, unit tests per tool, no hidden service in the middle. When a value matters, you can read the twenty lines that produced it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="wrap">
+        <p class="eyebrow">Features</p>
+        <h2>A desk, not a drawer of loose utilities.</h2>
+        <p class="lede">
+          The tools are the reason you open it. These are the reasons you keep it open.
+        </p>
+        <div class="feats">
+          <div class="feat">
+            <h3>⌘ Command palette</h3>
+            <p><kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>K</kbd> — or <kbd>F</kbd> — searches every tool, note and snippet by name and keyword. Two keystrokes from anywhere to anything.</p>
+          </div>
+          <div class="feat alt-bg">
+            <h3>🗂 Workspaces</h3>
+            <p>Tasks, notes and snippets belong to a workspace. The repository layer stamps and scopes them automatically, so client work and side projects never bleed into each other.</p>
+          </div>
+          <div class="feat alt-bg">
+            <h3>🕘 History, favourites, recents</h3>
+            <p>Every run is remembered — unless the tool's privacy level forbids it. Star the five you use daily; the rest surface by recency.</p>
+          </div>
+          <div class="feat">
+            <h3>📝 Notes &amp; snippets</h3>
+            <p>Markdown notes with a live preview and a syntax-highlighted snippet library, sitting next to the tools instead of in another app behind another login.</p>
+          </div>
+          <div class="feat">
+            <h3>📋 Task board</h3>
+            <p>A kanban board with a dashboard view, because the thing you were doing before the JSON needed reformatting is worth writing down.</p>
+          </div>
+          <div class="feat alt-bg">
+            <h3>💾 Backup in one file</h3>
+            <p>Export every table to a single JSON file and import it back. Your data leaves in a format you can read, whenever you like — no export queue, no email link.</p>
+          </div>
+          <div class="feat alt-bg">
+            <h3>☁️ Optional self-hosted sync</h3>
+            <p>A Hono worker on Cloudflare Workers + D1 that <a href="#sync">you deploy yourself</a> in six commands. Last-write-wins by <code>updatedAt</code>, soft deletes as tombstones. Off until you configure it.</p>
+          </div>
+          <div class="feat">
+            <h3>🪶 Native, not Electron</h3>
+            <p>A Neutralino shell wraps the system webview, so the window is a real window on Windows, macOS and Linux — without shipping a browser to do it.</p>
+          </div>
+          <div class="feat">
+            <h3>🌗 Themes that follow you</h3>
+            <p>Light, dark, and system, applied instantly across every view — including this page, which is why the toggle up there works.</p>
+          </div>
+          <div class="feat alt-bg">
+            <h3>🧪 Tested at every layer</h3>
+            <p>Vitest across tool logic, repositories (fake-indexeddb), services, the sync engine, Vue components, and the worker's routing and auth.</p>
+          </div>
+          <div class="feat alt-bg">
+            <h3>🔌 Extensible by design</h3>
+            <p>Tools are rendered generically from metadata, so adding one is logic plus a single catalog line — no bespoke component, no route to wire up.</p>
+          </div>
+          <div class="feat">
+            <h3>🔍 Search that knows synonyms</h3>
+            <p>Each tool carries keywords — search <em>p99</em>, <em>guid</em>, <em>rwx</em> or <em>kebab</em> and land on the right one without knowing its name.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="privacy" class="alt">
+      <div class="wrap">
+        <p class="eyebrow">Privacy levels</p>
+        <h2>Every tool declares what it's allowed to remember.</h2>
+        <p class="lede">
+          Privacy isn't a setting you have to go find — it's a property of the tool, enforced by the
+          platform. History, favourites and sync all read it before writing a single byte.
+        </p>
+        <div class="grid3">
+          <div class="card">
+            <h3><span class="lvl" style="color: var(--ok)">PUBLIC</span> Ordinary work</h3>
+            <p>Formatters, converters, calculators. Inputs are saved to local history so you can pick up where you left off, and they sync if sync is on.</p>
+            <div class="disk" style="color: var(--ok)"><span>disk</span><span class="bar"><i style="width:100%"></i></span><span>history + sync</span></div>
+          </div>
+          <div class="card">
+            <h3><span class="lvl" style="color: var(--warn)">LOCAL_ONLY</span> Mildly sensitive</h3>
+            <p>Generated tokens, passwords, image conversions, <code>.env</code> files. Kept in this device's history — never queued for the sync server.</p>
+            <div class="disk" style="color: var(--warn)"><span>disk</span><span class="bar"><i style="width:55%"></i></span><span>this device only</span></div>
+          </div>
+          <div class="card">
+            <h3><span class="lvl" style="color: var(--stop)">NEVER_PERSIST</span> Secrets</h3>
+            <p>JWTs, TOTP seeds, private keys, certificates, cookies. <code>supportsHistory</code> is false, so the value lives in memory and dies with the view.</p>
+            <div class="disk" style="color: var(--stop)"><span>disk</span><span class="bar"><i style="width:0%"></i></span><span>nothing written</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sync">
+      <div class="wrap">
+        <p class="eyebrow">Optional sync</p>
+        <h2>Want it on two machines? Host the server yourself.</h2>
+        <p class="lede">
+          There is no DevDesk cloud to sign up for. Sync is off until you deploy the worker, and the
+          worker is yours — one Cloudflare Worker plus one D1 database, comfortably inside the free
+          tier. Six commands from a fresh clone to a running server.
+        </p>
+
+        <div class="two">
+          <div class="copy-wrap">
+            <button class="copy" data-copy>Copy</button>
+            <pre><code><span class="c"># from the repo root — wrangler ships with the workspace</span>
+<span class="k">pnpm</span> --filter @devdesk/sync-api exec wrangler login
+<span class="k">pnpm</span> --filter @devdesk/sync-api exec wrangler d1 create devdesk
+<span class="c"># paste the printed database_id into apps/sync-api/wrangler.toml</span>
+<span class="k">pnpm</span> --filter @devdesk/sync-api db:migrate:remote
+<span class="k">pnpm</span> --filter @devdesk/sync-api exec wrangler secret put JWT_SECRET
+<span class="k">pnpm</span> --filter @devdesk/sync-api deploy</code></pre>
+          </div>
+          <ol class="steps">
+            <li><b>Create the database.</b> D1 is Cloudflare's SQLite; the schema lives in <code>migrations/</code> and applies in one command.</li>
+            <li><b>Set your own signing secret.</b> <code>JWT_SECRET</code> signs every login token — yours, never ours.</li>
+            <li><b>Seed one admin</b> with <code>DEFAULT_ADMIN_USERNAME</code> / <code>DEFAULT_ADMIN_PASSWORD</code> secrets. It's read once, on the first login, and only if no admin exists.</li>
+            <li><b>Deploy and check</b> <code>/health</code> — it answers <code>{"ok":true}</code> when the worker is live.</li>
+            <li><b>Point the app at it</b> in Settings → Cloud sync. The URL must be <code>https://</code>, and every further account comes from Administration → Users — there's no self-serve signup.</li>
+          </ol>
+        </div>
+        <p class="lede" style="margin: 22px 0 0">
+          Full walkthrough, including the <code>wrangler.toml</code> gotcha and custom domains, in the
+          <a id="readme-link" href="https://github.com">README → Deploy your own sync API</a>.
+        </p>
+      </div>
+    </section>
+
+    <section id="architecture" class="alt">
+      <div class="wrap">
+        <p class="eyebrow">Architecture</p>
+        <h2>A plugin platform wearing an app costume.</h2>
+        <p class="lede">
+          Tools are pure functions with zero UI. The desktop app renders them generically, so adding
+          one is logic plus a metadata entry — no bespoke component, no new page, no router surgery.
+        </p>
+
+        <p class="flow-label">Data flows one way</p>
+        <div class="flow">
+          <span class="node">Vue</span><span class="arrow">→</span>
+          <span class="node">Services</span><span class="arrow">→</span>
+          <span class="node">Repositories</span><span class="arrow">→</span>
+          <span class="node hi">Dexie / IndexedDB</span>
+        </div>
+
+        <p class="flow-label">Native access is isolated</p>
+        <div class="flow">
+          <span class="node">Vue</span><span class="arrow">→</span>
+          <span class="node">DesktopService</span><span class="arrow">→</span>
+          <span class="node hi">Neutralino</span><span class="arrow">/</span>
+          <span class="node">Web adapter</span>
+        </div>
+
+        <p class="flow-label">Features stay decoupled</p>
+        <div class="flow">
+          <span class="node">mutation</span><span class="arrow">→</span>
+          <span class="node">entity:mutated</span><span class="arrow">→</span>
+          <span class="node">sync queue</span><span class="arrow">+</span>
+          <span class="node">UI</span><span class="arrow">→</span>
+          <span class="node hi">Cloudflare D1 <em style="opacity:.6">(optional)</em></span>
+        </div>
+
+        <div class="two" style="margin-top: 36px">
+          <div>
+            <h3 style="font-size: 1rem; margin: 0 0 10px">A whole tool, start to finish</h3>
+            <div class="copy-wrap">
+              <button class="copy" data-copy>Copy</button>
+              <pre><code><span class="c">// packages/tools — logic, no DOM, no Vue</span>
+<span class="k">export const</span> slugify: ToolPlugin = {
+  metadata: <span class="k">metaFor</span>(<span class="s">'slugify'</span>),
+  schema,
+  run: (input) =&gt; toSlug(schema.<span class="k">parse</span>(input).text),
+}</code></pre>
+            </div>
+          </div>
+          <div>
+            <h3 style="font-size: 1rem; margin: 0 0 10px">…and its one catalog line</h3>
+            <div class="copy-wrap">
+              <button class="copy" data-copy>Copy</button>
+              <pre><code><span class="c">// packages/tools/src/catalog.ts</span>
+<span class="k">def</span>({
+  id: <span class="s">'slugify'</span>, name: <span class="s">'Slugify'</span>,
+  category: <span class="s">'web'</span>, path: <span class="s">'slugify'</span>,
+  icon: <span class="s">'link-2'</span>, keywords: [<span class="s">'slug'</span>, <span class="s">'kebab'</span>],
+})</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="build">
+      <div class="wrap">
+        <p class="eyebrow">Build from source</p>
+        <h2>Three commands and a native window.</h2>
+        <p class="lede">A pnpm workspace monorepo — Vue 3 + Vite front end, Neutralino shell, Cloudflare worker for the optional sync.</p>
+        <div class="copy-wrap">
+          <button class="copy" data-copy>Copy</button>
+          <pre><code>pnpm install
+pnpm dev                                 <span class="c"># sync API + desktop app</span>
+pnpm --filter @devdesk/desktop build     <span class="c"># build web assets</span>
+pnpm --filter @devdesk/desktop neu:build <span class="c"># produce release binaries</span></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <div class="row">
+          <a id="repo-link" href="#">Source on GitHub</a>
+          <a id="releases-link" href="#">Releases</a>
+          <a href="#inside">What's inside</a>
+        </div>
+        <p>Vue 3 · Vite · Neutralino · Dexie · Cloudflare Workers — MIT.</p>
+      </div>
+    </footer>
+
+    <script>
+      /* ============ theme + accent ============ */
+      (function () {
+        const root = document.documentElement;
+        const saved = localStorage.getItem("dd-theme");
+        root.dataset.theme = (saved || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
+        document.getElementById("theme-toggle").addEventListener("click", () => {
+          root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+          localStorage.setItem("dd-theme", root.dataset.theme);
+        });
+        // The logo is a hue dial. Costs nothing, delights everyone.
+        document.getElementById("logo").addEventListener("click", () => {
+          root.style.setProperty("--hue", Math.floor(Math.random() * 360));
+        });
+      })();
+
+      /* ============ category breakdown ============ */
+      (function () {
+        // Counts mirror packages/tools/src/catalog.ts — 73 tools in 10 categories.
+        const CATS = [
+          ["Crypto", 14, 340, "Identifier generators, SHA hashes and HMACs, one-time passcodes for 2FA, symmetric encryption, JWT decoding and signing, X.509 inspection, password entropy scoring."],
+          ["Images &amp; Colour", 9, 96, "QR codes, colour-space conversion, palette and tint/shade scales, WCAG contrast checking, CSS gradient design, on-device image resizing, SVG minification."],
+          ["Networking", 8, 190, "CIDR maths, IPv4/IPv6 representation, subnet planning, range-to-CIDR summarisation, containment and overlap checks, MAC decoding, port lookup."],
+          ["Web", 8, 200, "URL anatomy, auth headers, slugs, User-Agent parsing, status-code reference, curl converted to fetch/axios/HTTPie, cookie flag auditing, Cache-Control explained."],
+          ["Math", 8, 8, "Percentages, byte units in SI and IEC, p50/p95/p99 statistics, SLA downtime budgets, base conversion, aspect ratios, transfer times, ETAs."],
+          ["Development", 7, 150, "Regex testing, cron building and explaining, chmod permissions, naming-case conversion, a git cheatsheet, email normalisation, free port picking."],
+          ["Encoding", 6, 268, "Base64, percent-encoding, HTML entities, hex and binary dumps, Unicode code-point inspection, context-aware escaping for JS, SQL, shell and regex."],
+          ["Data Formats", 5, 22, "Round-trip conversion between JSON and YAML, CSV, JSON Lines, XML, and dotenv files — the five shapes config arrives in."],
+          ["Date &amp; Time", 5, 300, "Epoch conversion, multi-zone comparison, elapsed durations, business-day arithmetic, and ISO 8601 periods for TTLs and timeouts."],
+          ["JSON", 3, 42, "A tree/text editor with validation, a structural diff that shows paths rather than lines, and TypeScript interface generation."],
+        ];
+        const max = Math.max(...CATS.map((c) => c[1]));
+        document.getElementById("cats").innerHTML = CATS.map(
+          ([name, n, hue, blurb]) => `<article class="cat" style="--c: hsl(${hue} 75% 60%)">
+            <div class="top"><h3>${name}</h3><span class="n">${n}<small> tools</small></span></div>
+            <p>${blurb}</p>
+            <div class="bar"><i data-w="${Math.round((n / max) * 100)}"></i></div>
+          </article>`
+        ).join("");
+
+        // Fill the bars once they scroll into view.
+        const io = new IntersectionObserver(
+          (entries) => entries.forEach((e) => {
+            if (!e.isIntersecting) return;
+            e.target.style.width = e.target.dataset.w + "%";
+            io.unobserve(e.target);
+          }),
+          { threshold: 0.4 }
+        );
+        document.querySelectorAll(".cat .bar i").forEach((b) => io.observe(b));
+      })();
+
+      /* ============ hero flourishes ============ */
+      (function () {
+        const bar = document.getElementById("topbar");
+        addEventListener("scroll", () => bar.classList.toggle("stuck", scrollY > 12), { passive: true });
+
+        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        for (const el of document.querySelectorAll("[data-count]")) {
+          const to = +el.dataset.count;
+          if (reduce || !to) { el.textContent = to; continue; }
+          let i = 0;
+          const step = () => { i += Math.max(1, Math.ceil((to - i) / 6)); el.textContent = Math.min(i, to); if (i < to) requestAnimationFrame(step); };
+          setTimeout(step, 250);
+        }
+      })();
+
+      /* ============ copy buttons ============ */
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-copy]");
+        if (!btn) return;
+        navigator.clipboard.writeText(btn.parentElement.querySelector("code").innerText).then(() => {
+          btn.textContent = "Copied ✓";
+          setTimeout(() => (btn.textContent = "Copy"), 1400);
+        });
+      });
+
+      /* ============ live release links ============ */
+      (function () {
+        // Owner/repo come from the Pages URL (owner.github.io/repo), so nothing is hardcoded.
+        const host = location.hostname.split(".");
+        const owner = host[0] === "localhost" || host[0] === "127" ? null : host[0];
+        const repo = location.pathname.split("/").filter(Boolean)[0] || null;
+        const note = document.getElementById("dl-note");
+        const box = document.getElementById("downloads");
+        const fallback = document.getElementById("fallback-link");
+
+        if (!owner || !repo) {
+          note.textContent = "Open the published GitHub Pages URL to see live downloads.";
+          fallback.href = "https://github.com";
+          return;
+        }
+
+        const releasesUrl = `https://github.com/${owner}/${repo}/releases`;
+        document.getElementById("repo-link").href = `https://github.com/${owner}/${repo}`;
+        document.getElementById("releases-link").href = releasesUrl;
+        document.getElementById("readme-link").href =
+          `https://github.com/${owner}/${repo}#deploy-your-own-sync-api-cloudflare`;
+        fallback.href = `${releasesUrl}/latest`;
+
+        const ua = navigator.userAgent;
+        const myOs = /Win/.test(ua) ? "windows" : /Mac/.test(ua) ? "mac" : /Linux|X11/.test(ua) ? "linux" : "";
+        const label = { windows: "Windows", mac: "macOS", linux: "Linux" };
+
+        fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
+          .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+          .then((rel) => {
+            const assets = {};
+            for (const a of rel.assets || []) {
+              const n = a.name.toLowerCase();
+              const os = n.includes("windows") || n.includes("win") ? "windows" : n.includes("mac") ? "mac" : n.includes("linux") ? "linux" : null;
+              if (os && !assets[os]) assets[os] = a.browser_download_url;
+            }
+            if (!Object.keys(assets).length) throw new Error("no assets");
+
+            const secondary = box.lastElementChild;
+            box.innerHTML = "";
+            for (const os of ["windows", "mac", "linux"]) {
+              if (!assets[os]) continue;
+              const a = document.createElement("a");
+              a.className = "btn" + (os === myOs ? " primary" : "");
+              a.href = assets[os];
+              a.innerHTML = `Download <span class="os">${label[os]}</span>`;
+              box.appendChild(a);
+            }
+            box.appendChild(secondary);
+            note.innerHTML = `Latest: <strong>${rel.tag_name}</strong> · <a href="${releasesUrl}">all releases</a> · no installer telemetry, ever`;
+          })
+          .catch(() => {
+            note.innerHTML = `No published release yet. <a href="${releasesUrl}">Check releases</a> or build from source below.`;
+          });
+      })();
+    </script>
+  </body>
+</html>

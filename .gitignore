@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dist-ssr/
+build/
+*.local
+.DS_Store
+coverage/
+.wrangler/
+.dev.vars
+.env
+bin/
+extensions/
+neutralino.log
+tsconfig.tsbuildinfo
+*.tsbuildinfo

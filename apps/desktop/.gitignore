@@ -1,0 +1,17 @@
+# Neutralino artifacts. Only what the root .gitignore doesn't already cover —
+# node_modules/, dist/, build/, bin/, extensions/ and *.tsbuildinfo come from there.
+
+# The root ignores `neutralino.log`, but the file Neutralino actually writes is
+# `neutralinojs.log`, so it was never matched.
+neutralinojs.log
+
+# `neu` drops an auth token here for the dev client to reach the native side.
+# Never commit it.
+.tmp/
+
+# Neutralino's storage API, and the resource bundle `neu build --embed-resources` emits.
+.storage/
+resources.neu
+
+# auto-imports.d.ts and components.d.ts are generated too, but tsconfig.json lists them
+# in `include` — ignoring them breaks `pnpm typecheck` on a clone that hasn't built yet.

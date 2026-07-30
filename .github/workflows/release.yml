@@ -1,0 +1,49 @@
+name: Release
+
+# Push a version tag (e.g. `git tag v0.1.0 && git push --tags`) to build the
+# desktop binaries and publish them as a GitHub Release. Neutralino cross-builds
+# Windows/mac/Linux from one runner, so no build matrix is needed.
+# ponytail: one binary per platform (x64 + mac universal); add the linux arm/mac
+# single-arch builds to the upload list if anyone asks for them.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write # create the release + upload assets
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build web assets
+        run: pnpm --filter @devdesk/desktop build
+
+      - name: Build native binaries
+        working-directory: apps/desktop
+        run: |
+          pnpm exec neu update     # download Neutralino platform binaries (bin/ is gitignored)
+          pnpm exec neu build --embed-resources   # resources.neu is baked into each executable
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            apps/desktop/build/devdesk/devdesk-linux_x64 \
+            apps/desktop/build/devdesk/devdesk-mac_universal \
+            apps/desktop/build/devdesk/devdesk-win_x64.exe

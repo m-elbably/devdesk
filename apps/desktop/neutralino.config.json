@@ -1,0 +1,49 @@
+{
+  "applicationId": "com.devdesk.app",
+  "version": "1.0.0",
+  "defaultMode": "window",
+  "port": 47821,
+  "documentRoot": "/dist/",
+  "url": "/",
+  "enableServer": true,
+  "enableNativeAPI": true,
+  "tokenSecurity": "one-time",
+  "logging": {
+    "enabled": true,
+    "writeToLogFile": true
+  },
+  "nativeAllowList": [
+    "app.*",
+    "os.*",
+    "clipboard.*",
+    "window.*",
+    "storage.*",
+    "filesystem.readFile",
+    "filesystem.writeFile"
+  ],
+  "modes": {
+    "window": {
+      "title": "DevDesk",
+      "icon": "/dist/icon.png",
+      "width": 1200,
+      "height": 800,
+      "minWidth": 800,
+      "minHeight": 600,
+      "center": true,
+      "borderless": false
+    }
+  },
+  "cli": {
+    "binaryName": "devdesk",
+    "distributionPath": "/build/",
+    "resourcesPath": "/dist/",
+    "clientLibrary": "/dist/@neutralinojs/neutralino.js",
+    "binaryVersion": "6.9.0",
+    "clientVersion": "6.9.0",
+    "frontendLibrary": {
+      "patchFile": "/dist/index.html",
+      "devUrl": "http://localhost:5173",
+      "projectPath": "/"
+    }
+  }
+}
