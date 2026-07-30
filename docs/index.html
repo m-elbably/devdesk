@@ -672,19 +672,11 @@ pnpm --filter @devdesk/desktop neu:build <span class="c"># produce release binar
 
       /* ============ live release links ============ */
       (function () {
-        // Owner/repo come from the Pages URL (owner.github.io/repo), so nothing is hardcoded.
-        const host = location.hostname.split(".");
-        const owner = host[0] === "localhost" || host[0] === "127" ? null : host[0];
-        const repo = location.pathname.split("/").filter(Boolean)[0] || null;
+        const owner = "m-elbably";
+        const repo = "devdesk";
         const note = document.getElementById("dl-note");
         const box = document.getElementById("downloads");
         const fallback = document.getElementById("fallback-link");
-
-        if (!owner || !repo) {
-          note.textContent = "Open the published GitHub Pages URL to see live downloads.";
-          fallback.href = "https://github.com";
-          return;
-        }
 
         const releasesUrl = `https://github.com/${owner}/${repo}/releases`;
         document.getElementById("repo-link").href = `https://github.com/${owner}/${repo}`;
