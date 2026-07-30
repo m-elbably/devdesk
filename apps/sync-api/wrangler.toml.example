@@ -1,0 +1,13 @@
+name = "devdesk-sync-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "devdesk"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[vars]
+# Set a real secret in production with: wrangler secret put JWT_SECRET
+JWT_SECRET = "dev-insecure-secret-change-me"
