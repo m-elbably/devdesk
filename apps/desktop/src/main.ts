@@ -15,8 +15,14 @@ import './style.css'
 // no place in the app); on text fields, open our own Copy/Paste/Delete/Select All
 // menu instead (see EditContextMenu.vue) rather than the OS's full edit menu.
 window.addEventListener('contextmenu', (e) => {
+  const target = e.target as HTMLElement
+  // Elements marked [data-context-menu] bring their own menu (Reka's UContextMenu).
+  // It re-reads defaultPrevented a microtask after the event and bails if the flag
+  // is set, so cancelling here would silently swallow every such menu. It calls
+  // preventDefault itself, which still beats the native menu.
+  if (target.closest('[data-context-menu]')) return
   e.preventDefault()
-  const el = (e.target as HTMLElement).closest('input, textarea, [contenteditable="true"]')
+  const el = target.closest('input, textarea, [contenteditable="true"]')
   if (el) bus.emit('edit-menu:open', { x: e.clientX, y: e.clientY, target: el as HTMLElement })
 })
 

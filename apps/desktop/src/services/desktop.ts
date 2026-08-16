@@ -3,11 +3,19 @@
  * directly — so the same code runs in the packaged desktop app and in a plain browser.
  * Requirement: Vue → DesktopService → NeutralinoAdapter.
  */
+/** What the open dialog should accept. Native wants extensions, the web wants an accept string. */
+export interface FileFilter {
+  name: string
+  extensions: string[]
+}
+
+const JSON_FILTER: FileFilter = { name: 'JSON', extensions: ['json'] }
+
 export interface DesktopAdapter {
   readonly isNative: boolean
   saveTextFile(filename: string, content: string): Promise<void>
   /** Prompt the user to pick a file and return its text contents, or null if cancelled. */
-  openTextFile(): Promise<string | null>
+  openTextFile(filter?: FileFilter): Promise<string | null>
   copyToClipboard(text: string): Promise<void>
   setWindowTitle(title: string): Promise<void>
   /** Open a URL in the system's default browser (not the app's webview). */
@@ -27,11 +35,11 @@ class WebAdapter implements DesktopAdapter {
     URL.revokeObjectURL(url)
   }
 
-  async openTextFile(): Promise<string | null> {
+  async openTextFile(filter: FileFilter = JSON_FILTER): Promise<string | null> {
     return new Promise((resolve) => {
       const input = document.createElement('input')
       input.type = 'file'
-      input.accept = '.json,application/json'
+      input.accept = filter.extensions.map((e) => `.${e}`).join(',')
       input.onchange = () => {
         const file = input.files?.[0]
         if (!file) return resolve(null)
@@ -67,11 +75,9 @@ class NeutralinoAdapter implements DesktopAdapter {
     if (path) await filesystem.writeFile(path, content)
   }
 
-  async openTextFile(): Promise<string | null> {
+  async openTextFile(filter: FileFilter = JSON_FILTER): Promise<string | null> {
     const { os, filesystem } = await import('@neutralinojs/lib')
-    const path = await os.showOpenDialog('Open file', {
-      filters: [{ name: 'JSON', extensions: ['json'] }],
-    })
+    const path = await os.showOpenDialog('Open file', { filters: [filter] })
     const file = Array.isArray(path) ? path[0] : path
     if (!file) return null
     return filesystem.readFile(file)
