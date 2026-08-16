@@ -39,7 +39,7 @@ describe('renders without errors', () => {
     ['SettingsPage', SettingsPage, {}],
     ['DashboardPage', DashboardPage, {}],
     ['Sidebar', Sidebar, {}],
-    ['TaskCard', TaskCard, { task }],
+    ['TaskCard', TaskCard, { task, selected: false, selectedCount: 0, canMoveUp: true, canMoveDown: false }],
     ['TaskDialog', TaskDialog, { open: true, task: null }],
     ['ToolInfoDialog', ToolInfoDialog, { toolId: 'base64', open: true }],
     ['MarkdownEditor', MarkdownEditor, { modelValue: '# hi' }],

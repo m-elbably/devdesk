@@ -30,6 +30,8 @@ declare module 'vue' {
     UCard: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_2d6ea4ebb30b7d1eb234f57e793dd2f2/node_modules/@nuxt/ui/dist/runtime/components/Card.vue')['default']
     UCheckbox: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_2d6ea4ebb30b7d1eb234f57e793dd2f2/node_modules/@nuxt/ui/dist/runtime/components/Checkbox.vue')['default']
     UCommandPalette: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_2d6ea4ebb30b7d1eb234f57e793dd2f2/node_modules/@nuxt/ui/dist/runtime/components/CommandPalette.vue')['default']
+    UContextMenu: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_2d6ea4ebb30b7d1eb234f57e793dd2f2/node_modules/@nuxt/ui/dist/runtime/components/ContextMenu.vue')['default']
+    UDropdownMenu: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_2d6ea4ebb30b7d1eb234f57e793dd2f2/node_modules/@nuxt/ui/dist/runtime/components/DropdownMenu.vue')['default']
     UFieldGroup: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_2d6ea4ebb30b7d1eb234f57e793dd2f2/node_modules/@nuxt/ui/dist/runtime/components/FieldGroup.vue')['default']
     UFormField: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_2d6ea4ebb30b7d1eb234f57e793dd2f2/node_modules/@nuxt/ui/dist/runtime/components/FormField.vue')['default']
     UIcon: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_2d6ea4ebb30b7d1eb234f57e793dd2f2/node_modules/@nuxt/ui/dist/runtime/vue/components/Icon.vue')['default']

@@ -165,9 +165,11 @@ async function remove() {
 
   <BaseModal :open="confirmDelete" title="Delete task" box-class="max-w-sm w-full" @close="confirmDelete = false">
     <p class="text-sm text-muted">Delete “{{ task?.title }}”? This can’t be undone.</p>
-    <template #actions>
-      <UButton color="neutral" variant="ghost" size="sm" @click="confirmDelete = false">Cancel</UButton>
-      <UButton color="error" size="sm" :loading="busy" @click="remove">Delete</UButton>
+    <template #footer>
+      <div class="flex w-full justify-end gap-2">
+        <UButton color="neutral" variant="ghost" size="sm" @click="confirmDelete = false">Cancel</UButton>
+        <UButton color="error" size="sm" :loading="busy" @click="remove">Delete</UButton>
+      </div>
     </template>
   </BaseModal>
 </template>
