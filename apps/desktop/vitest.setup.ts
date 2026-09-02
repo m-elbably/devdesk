@@ -1,5 +1,8 @@
 import 'fake-indexeddb/auto' // provides IndexedDB so Dexie-backed repos/services work in tests
 
+// Reka's teleport refs use the global constructor after queued modal updates.
+globalThis.Element ??= window.Element
+
 // jsdom doesn't implement matchMedia; provide a minimal stub for components that read it.
 if (!window.matchMedia) {
   window.matchMedia = ((query: string) => ({

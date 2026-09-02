@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { DatabaseSync } from 'node:sqlite'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { listSince, upsertRecords } from '../src/db'
 import { parseCursor } from '../src/sync'
@@ -12,7 +12,8 @@ import { parseCursor } from '../src/sync'
  */
 function makeDb() {
   const sqlite = new DatabaseSync(':memory:')
-  sqlite.exec(readFileSync(fileURLToPath(new URL('../migrations/0001_init.sql', import.meta.url)), 'utf8'))
+  const migrations = fileURLToPath(new URL('../migrations/', import.meta.url))
+  for (const file of readdirSync(migrations).filter((name) => name.endsWith('.sql')).sort()) sqlite.exec(readFileSync(`${migrations}${file}`, 'utf8'))
   const run = (sql: string, params: unknown[]) => ({ results: sqlite.prepare(sql).all(...(params as never[])) })
   return {
     // `bind()` carries the statement for batch() and can also be awaited directly via

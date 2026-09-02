@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Link } from '@tanstack/vue-router'
 import { getTool, implementedTools } from '@devdesk/tools'
-import type { Note, Snippet, Task } from '@devdesk/shared'
+import type { Note, Task } from '@devdesk/shared'
 import PageShell from '@/components/PageShell.vue'
 import ToolCard from '@/features/tools/ToolCard.vue'
 import { services } from '@/services'
@@ -12,13 +12,11 @@ import { recentWorkspaceActivity } from '@/lib/workspaceActivity'
 
 const tasks = ref<Task[]>([])
 const notes = ref<Note[]>([])
-const snippets = ref<Snippet[]>([])
 
 async function reload() {
-  const [nextTasks, nextNotes, nextSnippets] = await Promise.all([services.tasks.list(), services.notes.list(), services.snippets.list()])
+  const [nextTasks, nextNotes] = await Promise.all([services.tasks.list(), services.notes.list()])
   tasks.value = nextTasks
   notes.value = nextNotes
-  snippets.value = nextSnippets
 }
 
 let off: (() => void) | undefined
@@ -31,13 +29,11 @@ onUnmounted(() => off?.())
 const home = computed(() => activeWorkspace()?.home ?? { toolIds: [], noteIds: [], snippetIds: [] })
 const tools = computed(() => home.value.toolIds.map(getTool).filter(Boolean))
 const pinnedNotes = computed(() => notes.value.filter((note) => home.value.noteIds.includes(note.id)))
-const pinnedSnippets = computed(() => snippets.value.filter((snippet) => home.value.snippetIds.includes(snippet.id)))
 const upNext = computed(() => tasks.value.filter((task) => task.status !== 'done').sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999')).slice(0, 6))
-const activity = computed(() => recentWorkspaceActivity(tasks.value, notes.value, snippets.value))
+const activity = computed(() => recentWorkspaceActivity(tasks.value, notes.value))
 
 const toolItems = implementedTools().map((tool) => ({ label: tool.name, value: tool.id }))
 const noteItems = computed(() => notes.value.map((note) => ({ label: note.title || 'Untitled note', value: note.id })))
-const snippetItems = computed(() => snippets.value.map((snippet) => ({ label: snippet.title || 'Untitled snippet', value: snippet.id })))
 
 /** SelectMenu can emit selected option objects as well as their value keys. Dexie
  * only accepts data-cloneable primitives, so persist the IDs either way. */
@@ -52,7 +48,7 @@ function selectedIds(values: unknown): string[] {
   })
 }
 
-async function update(kind: 'toolIds' | 'noteIds' | 'snippetIds', values: unknown) {
+async function update(kind: 'toolIds' | 'noteIds', values: unknown) {
   await updateWorkspaceHome({
     toolIds: [...home.value.toolIds],
     noteIds: [...home.value.noteIds],
@@ -82,7 +78,6 @@ async function update(kind: 'toolIds' | 'noteIds' | 'snippetIds', values: unknow
           <dl class="space-y-2 text-sm">
             <div class="flex justify-between"><dt class="text-muted">Open tasks</dt><dd>{{ tasks.filter((task) => task.status !== 'done').length }}</dd></div>
             <div class="flex justify-between"><dt class="text-muted">Notes</dt><dd>{{ notes.length }}</dd></div>
-            <div class="flex justify-between"><dt class="text-muted">Snippets</dt><dd>{{ snippets.length }}</dd></div>
           </dl>
         </UCard>
       </section>
@@ -93,16 +88,11 @@ async function update(kind: 'toolIds' | 'noteIds' | 'snippetIds', values: unknow
         <p v-else class="text-sm text-muted">Pin the tools this project uses most.</p>
       </section>
 
-      <section class="grid gap-6 lg:grid-cols-2">
+      <section>
         <div>
           <div class="mb-3 flex items-center justify-between gap-3"><h2 class="font-semibold">Pinned notes</h2><USelectMenu :model-value="home.noteIds" multiple value-key="value" label-key="label" :items="noteItems" placeholder="Pin notes" class="w-52" @update:model-value="update('noteIds', $event)" /></div>
           <div v-if="pinnedNotes.length" class="space-y-2"><Link v-for="note in pinnedNotes" :key="note.id" to="/notes" class="block rounded-lg border border-default bg-default p-3 hover:border-primary"><p class="font-medium">{{ note.title || 'Untitled note' }}</p><p class="mt-1 line-clamp-2 text-sm text-muted">{{ note.body }}</p></Link></div>
           <p v-else class="text-sm text-muted">Pin notes that define this project.</p>
-        </div>
-        <div>
-          <div class="mb-3 flex items-center justify-between gap-3"><h2 class="font-semibold">Pinned snippets</h2><USelectMenu :model-value="home.snippetIds" multiple value-key="value" label-key="label" :items="snippetItems" placeholder="Pin snippets" class="w-52" @update:model-value="update('snippetIds', $event)" /></div>
-          <div v-if="pinnedSnippets.length" class="space-y-2"><Link v-for="snippet in pinnedSnippets" :key="snippet.id" to="/snippets" class="block rounded-lg border border-default bg-default p-3 hover:border-primary"><p class="font-medium">{{ snippet.title || 'Untitled snippet' }}</p><p class="mt-1 line-clamp-2 font-mono text-sm text-muted">{{ snippet.code }}</p></Link></div>
-          <p v-else class="text-sm text-muted">Pin useful project snippets here.</p>
         </div>
       </section>
 
@@ -115,7 +105,7 @@ async function update(kind: 'toolIds' | 'noteIds' | 'snippetIds', values: unknow
             <span class="text-xs text-muted">{{ item.updatedAt.slice(0, 10) }}</span>
           </Link>
         </div>
-        <p v-else class="text-sm text-muted">Changes to tasks, notes, and snippets show up here.</p>
+        <p v-else class="text-sm text-muted">Changes to tasks and notes show up here.</p>
       </section>
     </div>
   </PageShell>

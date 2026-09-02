@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import type { Task, TaskStatus, TaskPriority } from '@devdesk/shared'
 import { BaseModal, ErrorState } from '@devdesk/ui'
-import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import RichMarkdownEditor from '@/components/RichMarkdownEditor.vue'
 import MarkdownView from '@/components/MarkdownView.vue'
 import { services } from '@/services'
 
@@ -127,7 +127,7 @@ async function remove() {
             </UButton>
           </UFieldGroup>
         </div>
-        <MarkdownEditor v-if="descMode === 'edit'" v-model="description" placeholder="Description (markdown)" class="h-72" />
+        <RichMarkdownEditor v-if="descMode === 'edit'" v-model="description" placeholder="Description" class="h-72" />
         <MarkdownView
           v-else
           :source="description || '_No description_'"

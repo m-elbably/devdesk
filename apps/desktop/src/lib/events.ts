@@ -14,6 +14,7 @@ export type AppEvents = {
   'tool:executed': { toolId: string }
   'favorite:changed': { toolId: string; isFavorite: boolean }
   'entity:mutated': { kind: EntityKind; id: string; op: 'upsert' | 'delete' }
+  'vault:changed': { unlocked: boolean }
   toast: { type: 'info' | 'success' | 'error'; message: string }
   'edit-menu:open': { x: number; y: number; target: HTMLElement }
 }

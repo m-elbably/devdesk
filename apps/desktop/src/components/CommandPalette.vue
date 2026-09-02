@@ -25,15 +25,14 @@ const GROUP_ICONS: Record<string, string> = {
   Tools: 'i-lucide-wrench',
   Notes: 'i-lucide-sticky-note',
   Tasks: 'i-lucide-kanban-square',
-  Snippets: 'i-lucide-code-2',
   'Go to': 'i-lucide-arrow-right',
 }
-const GROUP_ORDER = ['Go to', 'Tools', 'Notes', 'Tasks', 'Snippets']
+const GROUP_ORDER = ['Go to', 'Tools', 'Notes', 'Tasks']
 
 const router = useRouter()
 const open = ref(false)
 
-// Built once per open: tools + nav are static; notes/tasks/snippets are loaded live.
+// Built once per open: tools + nav are static; notes/tasks are loaded live.
 const items = ref<Item[]>([])
 async function buildItems() {
   const nav = [...PRIMARY_NAV.items, ...FOOTER_NAV.items].map((n) => ({
@@ -44,17 +43,15 @@ async function buildItems() {
     icon: GROUP_ICONS['Go to'],
   }))
   const tools = implementedTools().map((t) => ({ id: t.id, label: t.name, group: 'Tools', path: t.route, icon: GROUP_ICONS['Tools'] }))
-  const [notes, tasks, snippets] = await Promise.all([
+  const [notes, tasks] = await Promise.all([
     services.notes.list(),
     services.tasks.list(),
-    services.snippets.list(),
   ])
   items.value = [
     ...nav,
     ...tools,
     ...notes.map((n) => ({ id: n.id, label: n.title || 'Untitled note', group: 'Notes', path: '/notes', kind: 'note' as const, text: `${n.title} ${n.body}`, icon: GROUP_ICONS['Notes'] })),
     ...tasks.map((t) => ({ id: t.id, label: t.title, group: 'Tasks', path: '/board', kind: 'task' as const, icon: GROUP_ICONS['Tasks'] })),
-    ...snippets.map((s) => ({ id: s.id, label: s.title || 'Untitled snippet', group: 'Snippets', path: '/snippets', kind: 'snippet' as const, text: `${s.title} ${s.code}`, icon: GROUP_ICONS['Snippets'] })),
   ]
 }
 
@@ -105,7 +102,7 @@ onUnmounted(() => {
     v-model:open="open"
     :close="false"
     title="Command palette"
-    description="Search tools, notes, tasks and snippets"
+    description="Search tools, notes and tasks"
     :ui="{ content: 'sm:max-w-3xl top-[15vh] translate-y-0!' }"
   >
     <template #content>

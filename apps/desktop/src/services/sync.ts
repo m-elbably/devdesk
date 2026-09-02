@@ -4,6 +4,7 @@ import { ApiClient, SyncEngine, type AuthUser, type SyncStore } from '@devdesk/s
 import type { EntityKind, SyncedRecord, SyncOperation } from '@devdesk/shared'
 import { newId, nowIso, debounce } from '@devdesk/utils'
 import { bus } from '@/lib/events'
+import { migrateLegacySnippets } from '@/lib/snippetMigration'
 
 const DEFAULT_URL = (import.meta.env.VITE_SYNC_API_URL as string) || 'http://localhost:8787'
 const TOKEN_KEY = 'devdesk.sync.token'
@@ -15,6 +16,7 @@ const repoByKind = {
   workspace: repos.workspaces,
   task: repos.tasks,
   note: repos.notes,
+  notebook: repos.notebooks,
   snippet: repos.snippets,
   setting: repos.settings,
 } as const
@@ -23,6 +25,7 @@ const tableByKind = {
   workspace: db.workspaces,
   task: db.tasks,
   note: db.notes,
+  notebook: db.notebooks,
   snippet: db.snippets,
   setting: db.settings,
 } as const
@@ -146,6 +149,9 @@ export async function syncNow(): Promise<void> {
   try {
     await backfillQueue()
     await engine.sync()
+    // A legacy client may still create a snippet. Convert after pull so we always
+    // start from the server-authoritative copy, then sync the note+tombstone pair.
+    if (await migrateLegacySnippets()) await engine.sync()
     syncStatus.value = 'idle'
   } catch (e) {
     lastError.value = e instanceof Error ? e.message : String(e)

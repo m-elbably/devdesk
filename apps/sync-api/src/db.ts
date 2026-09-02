@@ -6,6 +6,7 @@ const TABLES: Record<EntityKind, string> = {
   workspace: 'workspaces',
   task: 'tasks',
   note: 'notes',
+  notebook: 'notebooks',
   snippet: 'snippets',
   setting: 'settings',
 }

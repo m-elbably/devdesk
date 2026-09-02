@@ -24,7 +24,7 @@ const MOD = navigator.userAgent.includes('Mac') ? '⌘' : 'Ctrl'
 const SHORTCUTS = [
   { keys: [MOD, 'K'], label: 'Open command palette' },
   { keys: [MOD, 'W'], label: 'Switch workspace' },
-  { keys: [MOD, 'S'], label: 'Save note or snippet' },
+  { keys: [MOD, 'S'], label: 'Save note' },
   { keys: ['Esc'], label: 'Close dialog or menu' },
 ]
 
@@ -67,9 +67,9 @@ async function exportMarkdown() {
   if (!workspace) return
   exportingMarkdown.value = true
   try {
-    const [tasks, notes, snippets] = await Promise.all([services.tasks.list(), services.notes.list(), services.snippets.list()])
+    const [tasks, notes] = await Promise.all([services.tasks.list(), services.notes.list()])
     const safeName = workspace.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'workspace'
-    await desktop.saveTextFile(`${safeName}.md`, exportWorkspaceMarkdown(workspace, tasks, notes, snippets))
+    await desktop.saveTextFile(`${safeName}.md`, exportWorkspaceMarkdown(workspace, tasks, notes))
     bus.emit('toast', { type: 'success', message: 'Workspace exported as Markdown.' })
   } catch (e) {
     bus.emit('toast', { type: 'error', message: e instanceof Error ? e.message : 'Markdown export failed.' })
@@ -235,14 +235,14 @@ async function signIn() {
           <div class="flex items-center justify-between gap-4 pb-4">
             <div>
               <p class="font-medium">Notes autosave</p>
-              <p class="text-sm text-muted">How often notes and snippets save while you type.</p>
+              <p class="text-sm text-muted">How often notes save while you type.</p>
             </div>
             <USelect v-model="autosaveMs" size="sm" :items="AUTOSAVE_OPTIONS" class="w-44 shrink-0" />
           </div>
           <div class="flex items-center justify-between gap-4 py-4">
             <div>
               <p class="font-medium">Backup database</p>
-              <p class="text-sm text-muted">Save all workspaces, tasks, notes and snippets to a JSON file.</p>
+              <p class="text-sm text-muted">Save all workspaces, tasks and notes to a JSON file.</p>
             </div>
             <UButton
               color="neutral"
@@ -447,7 +447,7 @@ async function signIn() {
       <template #body>
         <div class="space-y-4">
           <p class="text-sm text-muted">
-            Delete “{{ workspaceToDelete?.name }}”? Its tasks, notes and snippets are deleted too.
+            Delete “{{ workspaceToDelete?.name }}”? Its tasks and notes are deleted too.
           </p>
           <div class="flex justify-end gap-2">
             <UButton color="neutral" variant="ghost" size="sm" @click="workspaceToDelete = null">Cancel</UButton>
