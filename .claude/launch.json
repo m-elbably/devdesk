@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "desktop",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@devdesk/desktop", "dev"],
+      "port": 5173,
+      "autoPort": true
+    }
+  ]
+}
