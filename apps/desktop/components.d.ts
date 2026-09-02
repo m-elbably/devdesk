@@ -21,6 +21,7 @@ declare module 'vue' {
     MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
     MarkdownView: typeof import('./src/components/MarkdownView.vue')['default']
     PageShell: typeof import('./src/components/PageShell.vue')['default']
+    QuickCapture: typeof import('./src/components/QuickCapture.vue')['default']
     Sidebar: typeof import('./src/components/Sidebar.vue')['default']
     ThemeSwitcher: typeof import('./src/components/ThemeSwitcher.vue')['default']
     ToastContainer: typeof import('./src/components/ToastContainer.vue')['default']

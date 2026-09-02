@@ -48,6 +48,26 @@ export class DevDeskDB extends Dexie {
       toolHistory: 'id, toolId, [toolId+createdAt], createdAt',
       syncQueue: 'id, kind, entityId, createdAt',
     })
+    // Quick capture originally wrote only its title and description. Repair
+    // those rows on upgrade so every task still belongs to a visible column.
+    this.version(2).stores({
+      workspaces: 'id, updatedAt, deletedAt',
+      tasks: 'id, workspaceId, [workspaceId+status], status, position, dueDate, updatedAt, deletedAt',
+      notes: 'id, workspaceId, taskId, updatedAt, deletedAt',
+      snippets: 'id, workspaceId, taskId, language, updatedAt, deletedAt',
+      settings: 'id, &key, updatedAt, deletedAt',
+      favorites: 'toolId, createdAt',
+      recentTools: 'toolId, lastUsedAt',
+      toolHistory: 'id, toolId, [toolId+createdAt], createdAt',
+      syncQueue: 'id, kind, entityId, createdAt',
+    }).upgrade((tx) => tx.table('tasks').toCollection().modify((task) => {
+      task.description ??= ''
+      task.status ??= 'todo'
+      task.priority ??= 'medium'
+      task.tags ??= []
+      task.dueDate ??= null
+      task.position ??= 0
+    }))
   }
 }
 

@@ -575,6 +575,9 @@ function loadModel(input: Record<string, unknown>) {
 const canSaveSnippet = computed(
   () => !!meta.value?.supportsSnippets && !!meta.value && canPersistHistory(meta.value.privacyLevel) && hasResult.value,
 )
+const canSaveOutput = computed(
+  () => !!meta.value && canPersistHistory(meta.value.privacyLevel) && hasResult.value && !!copyText.value,
+)
 async function saveAsSnippet() {
   if (!meta.value || !copyText.value) return
   try {
@@ -587,6 +590,26 @@ async function saveAsSnippet() {
     bus.emit('toast', { type: 'success', message: `Saved to snippets as "${meta.value.name} output".` })
   } catch (e) {
     bus.emit('toast', { type: 'error', message: e instanceof Error ? e.message : 'Could not save snippet.' })
+  }
+}
+
+async function saveAsNote() {
+  if (!meta.value || !copyText.value) return
+  try {
+    await services.notes.create({ title: `${meta.value.name} output`, body: copyText.value, tags: [] } as never)
+    bus.emit('toast', { type: 'success', message: `Saved to notes as "${meta.value.name} output".` })
+  } catch (e) {
+    bus.emit('toast', { type: 'error', message: e instanceof Error ? e.message : 'Could not save note.' })
+  }
+}
+
+async function saveAsTask() {
+  if (!meta.value || !copyText.value) return
+  try {
+    await services.tasks.create({ title: `${meta.value.name} output`, description: copyText.value } as never)
+    bus.emit('toast', { type: 'success', message: `Created task from ${meta.value.name} output.` })
+  } catch (e) {
+    bus.emit('toast', { type: 'error', message: e instanceof Error ? e.message : 'Could not create task.' })
   }
 }
 
@@ -840,6 +863,15 @@ defineExpose({ resetModel, loadModel })
               aria-label="Save this output as a snippet"
               @click="saveAsSnippet"
             />
+            <UDropdownMenu
+              v-if="canSaveOutput"
+              :items="[[
+                { label: 'Save as note', icon: 'i-lucide-sticky-note', onSelect: saveAsNote },
+                { label: 'Create task from output', icon: 'i-lucide-kanban-square', onSelect: saveAsTask },
+              ]]"
+            >
+              <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-plus" title="Use this output" aria-label="Use this output" />
+            </UDropdownMenu>
             <CopyButton :value="copyText" />
           </div>
         </div>

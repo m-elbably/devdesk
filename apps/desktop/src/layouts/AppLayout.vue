@@ -7,6 +7,7 @@ import CommandPalette from '@/components/CommandPalette.vue'
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher.vue'
 import ToastContainer from '@/components/ToastContainer.vue'
 import EditContextMenu from '@/components/EditContextMenu.vue'
+import QuickCapture from '@/components/QuickCapture.vue'
 import { LayoutPanelLeft } from 'lucide-vue-next'
 
 // Sidebar is a fixed rail on lg+; below lg it lives in a slide-over opened by
@@ -47,6 +48,7 @@ watch(
     </USlideover>
 
     <CommandPalette />
+    <QuickCapture />
     <WorkspaceSwitcher />
     <ToastContainer />
     <EditContextMenu />

@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { setActiveWorkspaceId } from '@devdesk/database'
 import { DEFAULT_WORKSPACE_ID } from '@devdesk/shared'
-import type { Workspace } from '@devdesk/shared'
+import type { Workspace, WorkspaceHome } from '@devdesk/shared'
 import { services } from './index'
 
 const KEY = 'devdesk.workspaceId'
@@ -36,6 +36,14 @@ export async function createWorkspace(name: string): Promise<Workspace> {
  *  reloadWorkspaces falls back to the default and reloads, the same way switching does. */
 export async function deleteWorkspace(id: string): Promise<void> {
   await services.workspaces.remove(id)
+  await reloadWorkspaces()
+}
+
+/** Updates the small synced configuration that powers the active workspace home. */
+export async function updateWorkspaceHome(home: WorkspaceHome): Promise<void> {
+  const workspace = activeWorkspace()
+  if (!workspace) return
+  await services.workspaces.update(workspace.id, { home } as never)
   await reloadWorkspaces()
 }
 

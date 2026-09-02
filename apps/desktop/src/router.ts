@@ -21,6 +21,7 @@ const route = (path: string, component: unknown) =>
 
 const routes = [
   route('/', DashboardPage),
+  route('/workspace', lazy(() => import('@/features/workspace/WorkspaceHomePage.vue'))),
   route('/board', lazy(() => import('@/features/board/BoardPage.vue'))),
   route('/notes', lazy(() => import('@/features/notes/NotesPage.vue'))),
   route('/snippets', lazy(() => import('@/features/snippets/SnippetsPage.vue'))),

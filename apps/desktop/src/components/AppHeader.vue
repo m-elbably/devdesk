@@ -63,6 +63,7 @@ watch(
 
 const openPalette = () => window.dispatchEvent(new CustomEvent('devdesk:open-palette'))
 const openWorkspaceSwitcher = () => window.dispatchEvent(new CustomEvent('devdesk:open-workspace-switcher'))
+const openQuickCapture = () => window.dispatchEvent(new CustomEvent('devdesk:quick-capture'))
 </script>
 
 <template>
@@ -101,6 +102,8 @@ const openWorkspaceSwitcher = () => window.dispatchEvent(new CustomEvent('devdes
         </span>
       </template>
     </UButton>
+
+    <UButton color="neutral" variant="ghost" icon="i-lucide-plus" title="Quick capture (Ctrl+Shift+Space)" aria-label="Quick capture" @click="openQuickCapture" />
 
     <UTooltip text="Switch workspace (Ctrl+W)">
       <button type="button" class="shrink-0" @click="openWorkspaceSwitcher">

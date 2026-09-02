@@ -1,4 +1,4 @@
-import { createRepositories, type Repositories } from '@devdesk/database'
+import { createRepositories, getActiveWorkspaceId, type Repositories } from '@devdesk/database'
 import type { EntityKind, Task, Note, Snippet, TaskStatus, Workspace } from '@devdesk/shared'
 import { DEFAULT_WORKSPACE_ID } from '@devdesk/shared'
 import { bus } from '@/lib/events'
@@ -66,6 +66,24 @@ export function createServices(repos: Repositories = createRepositories()) {
 
   const tasks = {
     ...entityService<Task>(repos.tasks, 'task'),
+    // A task can be created outside the board (quick capture or a tool result),
+    // so the service owns the board fields that otherwise only TaskDialog fills.
+    async create(data: Parameters<typeof repos.tasks.create>[0]) {
+      const input = data as Partial<Task>
+      const status = input.status ?? 'todo'
+      const existing = await repos.tasks.byStatus(getActiveWorkspaceId(), status)
+      const r = await repos.tasks.create({
+        ...input,
+        description: input.description ?? '',
+        status,
+        priority: input.priority ?? 'medium',
+        tags: input.tags ?? [],
+        dueDate: input.dueDate ?? null,
+        position: input.position ?? existing.length,
+      } as never)
+      bus.emit('entity:mutated', { kind: 'task', id: r.id, op: 'upsert' })
+      return r
+    },
     byWorkspace: repos.tasks.byWorkspace.bind(repos.tasks),
     byStatus: repos.tasks.byStatus.bind(repos.tasks),
     /** Move a task to a column/position (drag & drop). */

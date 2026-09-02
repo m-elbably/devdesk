@@ -23,6 +23,11 @@ describe('task service', () => {
     off()
   })
 
+  it('gives tasks created outside the board visible board defaults', async () => {
+    const task = await services.tasks.create({ title: 'Captured task' } as never)
+    expect(task).toMatchObject({ status: 'todo', priority: 'medium', tags: [], dueDate: null, position: 0 })
+  })
+
   it('moves a task to a new column and position', async () => {
     const task = await services.tasks.create({ title: 'Move me', status: 'todo' } as never)
     await services.tasks.move(task.id, 'backlog', 3)

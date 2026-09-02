@@ -1,6 +1,7 @@
 import type { Component } from 'vue'
 import {
   LayoutDashboard,
+  FolderKanban,
   KanbanSquare,
   Star,
   Clock,
@@ -153,6 +154,7 @@ export const CATEGORY_ICONS: Record<ToolCategory, Component> = {
 export const PRIMARY_NAV: NavGroup = {
   items: [
     { label: 'Dashboard', to: '/', icon: LayoutDashboard },
+    { label: 'Project home', to: '/workspace', icon: FolderKanban },
     { label: 'Tasks', to: '/board', icon: KanbanSquare },
     { label: 'Notes', to: '/notes', icon: StickyNote },
     { label: 'Snippets', to: '/snippets', icon: Code2 },

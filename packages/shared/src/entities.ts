@@ -29,10 +29,20 @@ export interface SyncedRecord {
   deletedAt: string | null
 }
 
+export const WorkspaceHome = z.object({
+  toolIds: z.array(z.string()).default([]),
+  noteIds: z.array(z.string()).default([]),
+  snippetIds: z.array(z.string()).default([]),
+})
+export type WorkspaceHome = z.infer<typeof WorkspaceHome>
+
 export const Workspace = z.object({
   ...syncedFields,
   name: z.string().min(1),
   isDefault: z.boolean().default(false),
+  // The workspace is the project boundary. Keep its home configuration on the
+  // synced record rather than adding a second project model.
+  home: WorkspaceHome.default({ toolIds: [], noteIds: [], snippetIds: [] }),
 })
 export type Workspace = z.infer<typeof Workspace>
 

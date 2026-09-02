@@ -5,10 +5,11 @@ import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import { ErrorState } from '@devdesk/ui'
 import { syncUser, syncStatus, login, logout, syncNow, serverUrl, setServerUrl } from '@/services/sync'
 import { desktop } from '@/services/desktop'
-import { exportBackup, importBackup } from '@devdesk/database'
-import { activeWorkspaceId, workspaces, createWorkspace, deleteWorkspace } from '@/services/workspace'
+import { exportBackup, exportWorkspaceMarkdown, importBackup } from '@devdesk/database'
+import { activeWorkspace, activeWorkspaceId, workspaces, createWorkspace, deleteWorkspace } from '@/services/workspace'
 import type { Workspace } from '@devdesk/shared'
 import { bus } from '@/lib/events'
+import { services } from '@/services'
 
 const AUTOSAVE_OPTIONS = [
   { label: 'Off', value: '0' },
@@ -57,6 +58,23 @@ async function backupDb() {
     bus.emit('toast', { type: 'error', message: e instanceof Error ? e.message : 'Backup failed.' })
   } finally {
     backingUp.value = false
+  }
+}
+
+const exportingMarkdown = ref(false)
+async function exportMarkdown() {
+  const workspace = activeWorkspace()
+  if (!workspace) return
+  exportingMarkdown.value = true
+  try {
+    const [tasks, notes, snippets] = await Promise.all([services.tasks.list(), services.notes.list(), services.snippets.list()])
+    const safeName = workspace.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'workspace'
+    await desktop.saveTextFile(`${safeName}.md`, exportWorkspaceMarkdown(workspace, tasks, notes, snippets))
+    bus.emit('toast', { type: 'success', message: 'Workspace exported as Markdown.' })
+  } catch (e) {
+    bus.emit('toast', { type: 'error', message: e instanceof Error ? e.message : 'Markdown export failed.' })
+  } finally {
+    exportingMarkdown.value = false
   }
 }
 
@@ -233,6 +251,22 @@ async function signIn() {
               @click="backupDb"
             >
               Export to file
+            </UButton>
+          </div>
+          <div class="flex items-center justify-between gap-4 py-4">
+            <div>
+              <p class="font-medium">Export workspace as Markdown</p>
+              <p class="text-sm text-muted">Save the active workspace as one readable Markdown file.</p>
+            </div>
+            <UButton
+              color="neutral"
+              variant="subtle"
+              size="sm"
+              icon="i-lucide-file-text"
+              :loading="exportingMarkdown"
+              @click="exportMarkdown"
+            >
+              Export Markdown
             </UButton>
           </div>
           <div class="flex items-center justify-between gap-4 pt-4">
