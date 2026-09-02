@@ -16,6 +16,8 @@ export interface RecentTool {
 export interface ToolHistoryEntry {
   id: string
   toolId: string
+  /** A user-named input preset; unlabelled rows are ordinary execution history. */
+  label?: string
   /** Trimmed/omitted per privacy level by the service layer, never here. */
   input: unknown
   output: unknown

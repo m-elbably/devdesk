@@ -8,6 +8,7 @@ import ToolCard from '@/features/tools/ToolCard.vue'
 import { services } from '@/services'
 import { activeWorkspace, updateWorkspaceHome } from '@/services/workspace'
 import { bus } from '@/lib/events'
+import { recentWorkspaceActivity } from '@/lib/workspaceActivity'
 
 const tasks = ref<Task[]>([])
 const notes = ref<Note[]>([])
@@ -32,6 +33,7 @@ const tools = computed(() => home.value.toolIds.map(getTool).filter(Boolean))
 const pinnedNotes = computed(() => notes.value.filter((note) => home.value.noteIds.includes(note.id)))
 const pinnedSnippets = computed(() => snippets.value.filter((snippet) => home.value.snippetIds.includes(snippet.id)))
 const upNext = computed(() => tasks.value.filter((task) => task.status !== 'done').sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999')).slice(0, 6))
+const activity = computed(() => recentWorkspaceActivity(tasks.value, notes.value, snippets.value))
 
 const toolItems = implementedTools().map((tool) => ({ label: tool.name, value: tool.id }))
 const noteItems = computed(() => notes.value.map((note) => ({ label: note.title || 'Untitled note', value: note.id })))
@@ -102,6 +104,18 @@ async function update(kind: 'toolIds' | 'noteIds' | 'snippetIds', values: unknow
           <div v-if="pinnedSnippets.length" class="space-y-2"><Link v-for="snippet in pinnedSnippets" :key="snippet.id" to="/snippets" class="block rounded-lg border border-default bg-default p-3 hover:border-primary"><p class="font-medium">{{ snippet.title || 'Untitled snippet' }}</p><p class="mt-1 line-clamp-2 font-mono text-sm text-muted">{{ snippet.code }}</p></Link></div>
           <p v-else class="text-sm text-muted">Pin useful project snippets here.</p>
         </div>
+      </section>
+
+      <section>
+        <h2 class="mb-3 font-semibold">Recently changed</h2>
+        <div v-if="activity.length" class="divide-y divide-default rounded-lg border border-default bg-default px-3">
+          <Link v-for="item in activity" :key="`${item.kind}-${item.id}`" :to="item.to" class="flex items-center gap-3 py-2 hover:text-primary">
+            <UBadge color="neutral" variant="subtle" size="sm">{{ item.kind }}</UBadge>
+            <span class="flex-1 truncate text-sm">{{ item.title }}</span>
+            <span class="text-xs text-muted">{{ item.updatedAt.slice(0, 10) }}</span>
+          </Link>
+        </div>
+        <p v-else class="text-sm text-muted">Changes to tasks, notes, and snippets show up here.</p>
       </section>
     </div>
   </PageShell>

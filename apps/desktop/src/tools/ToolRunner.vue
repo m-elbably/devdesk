@@ -4,7 +4,7 @@ import DOMPurify from 'dompurify'
 import { getPlugin, getTool, analyzePassword } from '@devdesk/tools'
 import { canPersistHistory } from '@devdesk/shared'
 import { newId, nowIso, debounce } from '@devdesk/utils'
-import { CopyButton, ErrorState, EmptyState, LoadingState } from '@devdesk/ui'
+import { BaseModal, CopyButton, ErrorState, EmptyState, LoadingState } from '@devdesk/ui'
 import { ArrowRight, CheckCircle2 } from 'lucide-vue-next'
 import type { JsonChange, OtpResult } from '@devdesk/tools'
 import CodeBlock from '@/components/CodeBlock.vue'
@@ -22,6 +22,7 @@ import { TOOL_UI, type Field } from './ui-spec'
 import { services } from '@/services'
 import { desktop } from '@/services/desktop'
 import { bus } from '@/lib/events'
+import { redactText } from '@/lib/redactText'
 
 const props = defineProps<{ toolId: string }>()
 
@@ -505,6 +506,8 @@ const copyText = computed(() => {
     default: return asText.value
   }
 })
+const redactedCopyText = computed(() => redactText(copyText.value))
+const canCopyRedacted = computed(() => redactedCopyText.value !== copyText.value)
 
 // Empty arrays (no diff, no list items) count as "no result" so the header
 // actions stay hidden.
@@ -578,6 +581,30 @@ const canSaveSnippet = computed(
 const canSaveOutput = computed(
   () => !!meta.value && canPersistHistory(meta.value.privacyLevel) && hasResult.value && !!copyText.value,
 )
+const canSaveRecipe = computed(
+  () => !!meta.value && canPersistHistory(meta.value.privacyLevel) && Object.values(model).some((value) => value !== '' && value !== false && value != null),
+)
+const recipeOpen = ref(false)
+const recipeLabel = ref('')
+function openRecipeDialog() {
+  recipeLabel.value = ''
+  recipeOpen.value = true
+}
+async function saveRecipe() {
+  if (!meta.value) return
+  const label = recipeLabel.value.trim()
+  if (!label) return
+  await services.toolUsage.history.add({
+    id: newId(),
+    toolId: props.toolId,
+    label,
+    input: { ...model },
+    output: null,
+    createdAt: nowIso(),
+  })
+  recipeOpen.value = false
+  bus.emit('toast', { type: 'success', message: `Recipe “${label}” saved.` })
+}
 async function saveAsSnippet() {
   if (!meta.value || !copyText.value) return
   try {
@@ -741,6 +768,10 @@ defineExpose({ resetModel, loadModel })
         {{ busy ? 'Working…' : (spec.actionLabel ?? 'Run') }}
       </UButton>
 
+      <UButton v-if="canSaveRecipe" color="neutral" variant="ghost" size="sm" icon="i-lucide-bookmark-plus" title="Save these inputs as a recipe" @click="openRecipeDialog">
+        Save recipe
+      </UButton>
+
       <div class="flex-1" />
     </div>
 
@@ -872,6 +903,7 @@ defineExpose({ resetModel, loadModel })
             >
               <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-plus" title="Use this output" aria-label="Use this output" />
             </UDropdownMenu>
+            <CopyButton v-if="canCopyRedacted" :value="redactedCopyText" label="Copy redacted" />
             <CopyButton :value="copyText" />
           </div>
         </div>
@@ -1135,6 +1167,18 @@ defineExpose({ resetModel, loadModel })
     <p v-if="spec.note" class="mt-4 shrink-0 rounded-lg border border-default bg-muted/40 p-3 text-sm text-default/70">
       <span class="font-medium text-default">Note:</span> {{ spec.note }}
     </p>
+
+    <BaseModal :open="recipeOpen" title="Save recipe" @close="recipeOpen = false">
+      <form class="space-y-4" @submit.prevent="saveRecipe">
+        <UFormField label="Recipe name">
+          <UInput v-model="recipeLabel" class="w-full" placeholder="Release checksum" autofocus />
+        </UFormField>
+        <div class="flex justify-end gap-2">
+          <UButton type="button" color="neutral" variant="ghost" size="sm" @click="recipeOpen = false">Cancel</UButton>
+          <UButton type="submit" color="primary" size="sm" :disabled="!recipeLabel.trim()">Save recipe</UButton>
+        </div>
+      </form>
+    </BaseModal>
   </div>
 </template>
 

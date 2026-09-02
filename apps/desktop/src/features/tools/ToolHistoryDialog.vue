@@ -52,18 +52,21 @@ async function clearAll() {
 <template>
   <BaseModal :open="open" title="Recent runs" box-class="max-w-2xl w-full" @close="emit('close')">
     <template #actions>
-      <UButton
-        v-if="entries.length"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        icon="i-lucide-trash-2"
-        class="hover:text-error"
-        title="Clear this tool's history"
-        @click="clearAll"
-      >
-        Clear
-      </UButton>
+      <div class="ml-auto flex items-center gap-1">
+        <UButton
+          v-if="entries.length"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          icon="i-lucide-trash-2"
+          class="hover:text-error"
+          title="Clear this tool's history"
+          @click="clearAll"
+        >
+          Clear
+        </UButton>
+        <UButton color="neutral" variant="ghost" size="sm" icon="i-lucide-x" title="Close" aria-label="Close" @click="emit('close')" />
+      </div>
     </template>
 
     <EmptyState
@@ -81,6 +84,7 @@ async function clearAll() {
           title="Load these inputs back into the tool"
           @click="restore(e)"
         >
+          <span v-if="e.label" class="text-xs font-medium text-primary">{{ e.label }}</span>
           <span class="font-mono text-sm break-all line-clamp-2 w-full">{{ summarize(e.input) }}</span>
           <span class="text-xs text-default/50">{{ when(e.createdAt) }}</span>
         </UButton>

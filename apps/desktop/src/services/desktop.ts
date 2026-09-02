@@ -16,6 +16,7 @@ export interface DesktopAdapter {
   saveTextFile(filename: string, content: string): Promise<void>
   /** Prompt the user to pick a file and return its text contents, or null if cancelled. */
   openTextFile(filter?: FileFilter): Promise<string | null>
+  readClipboard(): Promise<string>
   copyToClipboard(text: string): Promise<void>
   setWindowTitle(title: string): Promise<void>
   /** Open a URL in the system's default browser (not the app's webview). */
@@ -56,6 +57,10 @@ class WebAdapter implements DesktopAdapter {
     await navigator.clipboard.writeText(text)
   }
 
+  async readClipboard(): Promise<string> {
+    return navigator.clipboard.readText()
+  }
+
   async setWindowTitle(title: string): Promise<void> {
     document.title = title
   }
@@ -86,6 +91,11 @@ class NeutralinoAdapter implements DesktopAdapter {
   async copyToClipboard(text: string): Promise<void> {
     const { clipboard } = await import('@neutralinojs/lib')
     await clipboard.writeText(text)
+  }
+
+  async readClipboard(): Promise<string> {
+    const { clipboard } = await import('@neutralinojs/lib')
+    return clipboard.readText()
   }
 
   async setWindowTitle(title: string): Promise<void> {

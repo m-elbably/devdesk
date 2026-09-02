@@ -6,6 +6,13 @@ import { services } from './index'
 
 const KEY = 'devdesk.workspaceId'
 
+export const WORKSPACE_TEMPLATES = {
+  empty: { label: 'Empty', description: 'Start with a blank workspace.' },
+  software: { label: 'Software project', description: 'Starter tasks, a project brief, and a README snippet.' },
+  incident: { label: 'Incident response', description: 'An urgent response board, timeline, and status-update starter.' },
+} as const
+export type WorkspaceTemplate = keyof typeof WORKSPACE_TEMPLATES
+
 export const activeWorkspaceId = ref(localStorage.getItem(KEY) ?? DEFAULT_WORKSPACE_ID)
 export const workspaces = ref<Workspace[]>([])
 
@@ -26,8 +33,27 @@ export async function reloadWorkspaces(): Promise<void> {
   if (fallback) selectWorkspace(fallback.id)
 }
 
-export async function createWorkspace(name: string): Promise<Workspace> {
+export async function createWorkspace(name: string, template: WorkspaceTemplate = 'empty'): Promise<Workspace> {
   const ws = await services.workspaces.create({ name } as never)
+  if (template === 'software') {
+    await Promise.all([
+      services.tasks.create({ workspaceId: ws.id, title: 'Define the first outcome', status: 'backlog', position: 0 } as never),
+      services.tasks.create({ workspaceId: ws.id, title: 'Set up the project', status: 'todo', position: 0 } as never),
+      services.tasks.create({ workspaceId: ws.id, title: 'Ship the first deliverable', status: 'todo', position: 1 } as never),
+      services.notes.create({ workspaceId: ws.id, title: 'Project brief', body: '# Project brief\n\n## Goal\n\n## Constraints\n\n## Next milestone\n', tags: [] } as never),
+      services.snippets.create({ workspaceId: ws.id, title: 'README starter', code: '# Project name\n\n## Development\n\n## Decisions\n', language: 'markdown', tags: [] } as never),
+    ])
+  }
+  if (template === 'incident') {
+    await Promise.all([
+      services.tasks.create({ workspaceId: ws.id, title: 'Assess impact and scope', status: 'in_progress', priority: 'urgent', position: 0 } as never),
+      services.tasks.create({ workspaceId: ws.id, title: 'Mitigate the incident', status: 'todo', priority: 'urgent', position: 0 } as never),
+      services.tasks.create({ workspaceId: ws.id, title: 'Publish a status update', status: 'todo', priority: 'high', position: 1 } as never),
+      services.tasks.create({ workspaceId: ws.id, title: 'Document follow-up actions', status: 'backlog', priority: 'high', position: 0 } as never),
+      services.notes.create({ workspaceId: ws.id, title: 'Incident timeline', body: '# Incident timeline\n\n## Detection\n\n## Impact\n\n## Actions\n\n## Resolution\n', tags: ['incident'] } as never),
+      services.snippets.create({ workspaceId: ws.id, title: 'Status update', code: '## Status update\n\n**Impact:** \n\n**Current action:** \n\n**Next update:** \n', language: 'markdown', tags: ['incident'] } as never),
+    ])
+  }
   await reloadWorkspaces()
   return ws
 }

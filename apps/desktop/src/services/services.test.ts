@@ -41,3 +41,17 @@ describe('task service', () => {
     expect(await services.tasks.list()).toHaveLength(0)
   })
 })
+
+describe('tool recipes', () => {
+  it('keeps a named input preset with the tool history', async () => {
+    await services.toolUsage.history.add({
+      id: crypto.randomUUID(),
+      toolId: 'hash',
+      label: 'Release checksum',
+      input: { text: 'build.tar.gz' },
+      output: null,
+      createdAt: new Date().toISOString(),
+    })
+    expect(await services.toolUsage.history.byTool('hash')).toMatchObject([{ label: 'Release checksum', input: { text: 'build.tar.gz' } }])
+  })
+})

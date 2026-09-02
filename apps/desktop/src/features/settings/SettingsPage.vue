@@ -6,7 +6,7 @@ import { ErrorState } from '@devdesk/ui'
 import { syncUser, syncStatus, login, logout, syncNow, serverUrl, setServerUrl } from '@/services/sync'
 import { desktop } from '@/services/desktop'
 import { exportBackup, exportWorkspaceMarkdown, importBackup } from '@devdesk/database'
-import { activeWorkspace, activeWorkspaceId, workspaces, createWorkspace, deleteWorkspace } from '@/services/workspace'
+import { activeWorkspace, activeWorkspaceId, workspaces, createWorkspace, deleteWorkspace, WORKSPACE_TEMPLATES, type WorkspaceTemplate } from '@/services/workspace'
 import type { Workspace } from '@devdesk/shared'
 import { bus } from '@/lib/events'
 import { services } from '@/services'
@@ -96,14 +96,16 @@ async function importDb() {
 
 const newWorkspaceOpen = ref(false)
 const newWorkspace = ref('')
+const workspaceTemplate = ref<WorkspaceTemplate>('empty')
 const addingWorkspace = ref(false)
 async function addWorkspace() {
   const name = newWorkspace.value.trim()
   if (!name) return
   addingWorkspace.value = true
   try {
-    const ws = await createWorkspace(name)
+    const ws = await createWorkspace(name, workspaceTemplate.value)
     newWorkspace.value = ''
+    workspaceTemplate.value = 'empty'
     newWorkspaceOpen.value = false
     bus.emit('toast', { type: 'success', message: `Workspace “${ws.name}” created.` })
   } catch (e) {
@@ -417,11 +419,16 @@ async function signIn() {
       </template>
     </UModal>
 
-    <UModal v-model:open="newWorkspaceOpen" title="New workspace" description="Starts empty. Switch to it to begin adding items.">
+    <UModal v-model:open="newWorkspaceOpen" title="New workspace" description="Choose an empty workspace or a small software-project starter.">
       <template #body>
         <form class="space-y-4" @submit.prevent="addWorkspace">
           <UFormField label="Name">
             <UInput v-model="newWorkspace" class="w-full" placeholder="Client project" required autofocus />
+          </UFormField>
+          <UFormField label="Template" :description="WORKSPACE_TEMPLATES[workspaceTemplate].description">
+            <select v-model="workspaceTemplate" class="w-full rounded-md border border-default bg-default px-3 py-2 text-sm">
+              <option v-for="(template, id) in WORKSPACE_TEMPLATES" :key="id" :value="id">{{ template.label }}</option>
+            </select>
           </UFormField>
           <div class="flex justify-end gap-2">
             <UButton type="button" color="neutral" variant="ghost" size="sm" @click="newWorkspaceOpen = false">Cancel</UButton>
