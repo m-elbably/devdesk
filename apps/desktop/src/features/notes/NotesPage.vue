@@ -134,7 +134,7 @@ async function saveNow(): Promise<boolean> {
     savedSnapshot.value = snapshot()
     return true
   } catch (cause) {
-    if (metaOpen.value) metaError.value = cause instanceof Error ? cause.message : String(cause)
+    if (metaOpen.value) { error.value = ''; metaError.value = cause instanceof Error ? cause.message : String(cause) }
     else fail(cause)
     return false
   } finally { saving.value = false }
@@ -265,7 +265,7 @@ onMounted(() => window.addEventListener('keydown', onKeydown)); onBeforeUnmount(
             <UInput v-model="title" :disabled="selectedProtected && !selectedUnlocked" variant="none" placeholder="Untitled" aria-label="Note title" class="min-w-0 flex-1" :ui="{ base: 'text-2xl font-bold px-2 py-1 rounded-md bg-elevated/50 ring ring-transparent hover:ring-accented focus:ring-primary focus:bg-elevated/50 transition' }" />
             <UButton v-if="dirty" size="sm" color="primary" :loading="saving" @click="saveNow">Save</UButton>
             <UButton size="sm" color="neutral" variant="ghost" :icon="selectedProtected && selectedUnlocked ? 'i-lucide-lock-open' : 'i-lucide-lock-keyhole'" :title="selectedProtected ? (selectedUnlocked ? 'Lock this key' : 'Unlock protected note') : 'Protect note'" :aria-label="selectedProtected ? (selectedUnlocked ? 'Unlocked protected note' : 'Protected note') : 'Protect note'" @click="selectedProtected ? (selectedUnlocked ? lockKey(selected) : openVault('unlock')) : openVault('protect')" />
-            <UButton size="sm" color="neutral" variant="ghost" icon="i-lucide-settings-2" title="Details" aria-label="Note details" @click="metaError = ''; metaOpen = true" />
+            <UButton size="sm" color="neutral" variant="ghost" icon="i-lucide-settings-2" title="Details" aria-label="Note details" @click="error = ''; metaError = ''; metaOpen = true" />
             <UButton size="sm" color="error" variant="ghost" icon="i-lucide-trash-2" aria-label="Delete note" @click="deleteTarget = { kind: 'note', id: selected.id, label: title || 'Untitled' }" />
           </div>
           <div v-if="selectedProtected && !selectedUnlocked" class="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed border-default text-center text-muted">
