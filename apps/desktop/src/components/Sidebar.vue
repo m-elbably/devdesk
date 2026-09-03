@@ -35,12 +35,11 @@ const linkClass =
 // Item counts shown as badges next to their nav entry.
 const counts = ref<Record<string, number>>({})
 async function reloadCounts() {
-  const [tasks, notes, snippets] = await Promise.all([
+  const [tasks, notes] = await Promise.all([
     services.tasks.list(),
     services.notes.list(),
-    services.snippets.list(),
   ])
-  counts.value = { '/board': tasks.length, '/notes': notes.length, '/snippets': snippets.length }
+  counts.value = { '/board': tasks.length, '/notes': notes.length }
 }
 
 let off: (() => void) | undefined

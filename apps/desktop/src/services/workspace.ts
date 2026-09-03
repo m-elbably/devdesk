@@ -8,7 +8,7 @@ const KEY = 'devdesk.workspaceId'
 
 export const WORKSPACE_TEMPLATES = {
   empty: { label: 'Empty', description: 'Start with a blank workspace.' },
-  software: { label: 'Software project', description: 'Starter tasks, a project brief, and a README snippet.' },
+  software: { label: 'Software project', description: 'Starter tasks, a project brief, and a README note.' },
   incident: { label: 'Incident response', description: 'An urgent response board, timeline, and status-update starter.' },
 } as const
 export type WorkspaceTemplate = keyof typeof WORKSPACE_TEMPLATES
@@ -23,7 +23,9 @@ setActiveWorkspaceId(activeWorkspaceId.value)
 export const activeWorkspace = () => workspaces.value.find((w) => w.id === activeWorkspaceId.value)
 
 export async function reloadWorkspaces(): Promise<void> {
-  workspaces.value = await services.workspaces.list()
+  // Rows written before `home` existed come back without it; default here so no
+  // caller has to guard `workspace.home`.
+  workspaces.value = (await services.workspaces.list()).map((w) => ({ ...w, home: w.home ?? { toolIds: [], noteIds: [], snippetIds: [] } }))
   if (activeWorkspace()) return
   // The stored id can point at a workspace that was deleted, belongs to another
   // device's data, or is the pre-uuid default id — fall back to the real default row
@@ -41,7 +43,7 @@ export async function createWorkspace(name: string, template: WorkspaceTemplate 
       services.tasks.create({ workspaceId: ws.id, title: 'Set up the project', status: 'todo', position: 0 } as never),
       services.tasks.create({ workspaceId: ws.id, title: 'Ship the first deliverable', status: 'todo', position: 1 } as never),
       services.notes.create({ workspaceId: ws.id, title: 'Project brief', body: '# Project brief\n\n## Goal\n\n## Constraints\n\n## Next milestone\n', tags: [] } as never),
-      services.snippets.create({ workspaceId: ws.id, title: 'README starter', code: '# Project name\n\n## Development\n\n## Decisions\n', language: 'markdown', tags: [] } as never),
+      services.notes.create({ workspaceId: ws.id, title: 'README starter', body: '# Project name\n\n## Development\n\n## Decisions\n', tags: [] } as never),
     ])
   }
   if (template === 'incident') {
@@ -51,7 +53,7 @@ export async function createWorkspace(name: string, template: WorkspaceTemplate 
       services.tasks.create({ workspaceId: ws.id, title: 'Publish a status update', status: 'todo', priority: 'high', position: 1 } as never),
       services.tasks.create({ workspaceId: ws.id, title: 'Document follow-up actions', status: 'backlog', priority: 'high', position: 0 } as never),
       services.notes.create({ workspaceId: ws.id, title: 'Incident timeline', body: '# Incident timeline\n\n## Detection\n\n## Impact\n\n## Actions\n\n## Resolution\n', tags: ['incident'] } as never),
-      services.snippets.create({ workspaceId: ws.id, title: 'Status update', code: '## Status update\n\n**Impact:** \n\n**Current action:** \n\n**Next update:** \n', language: 'markdown', tags: ['incident'] } as never),
+      services.notes.create({ workspaceId: ws.id, title: 'Status update', body: '## Status update\n\n**Impact:** \n\n**Current action:** \n\n**Next update:** \n', tags: ['incident'] } as never),
     ])
   }
   await reloadWorkspaces()
@@ -69,7 +71,8 @@ export async function deleteWorkspace(id: string): Promise<void> {
 export async function updateWorkspaceHome(home: WorkspaceHome): Promise<void> {
   const workspace = activeWorkspace()
   if (!workspace) return
-  await services.workspaces.update(workspace.id, { home } as never)
+  // `home` is assembled from reactive arrays; IndexedDB cannot clone Vue proxies.
+  await services.workspaces.update(workspace.id, { home: JSON.parse(JSON.stringify(home)) } as never)
   await reloadWorkspaces()
 }
 

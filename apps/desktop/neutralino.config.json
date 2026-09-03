@@ -31,7 +31,8 @@
       "minWidth": 800,
       "minHeight": 600,
       "center": true,
-      "borderless": false
+      "borderless": false,
+      "exitProcessOnClose": true
     }
   },
   "cli": {

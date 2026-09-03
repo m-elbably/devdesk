@@ -15,7 +15,7 @@ const clipboardPrefilled = ref(false)
 const router = useRouter()
 let clipboardRequest = 0
 
-const labels: Record<CaptureKind, string> = { task: 'Task', note: 'Note', snippet: 'Snippet' }
+const labels: Record<CaptureKind, string> = { task: 'Task', note: 'Note' }
 
 function show() {
   const request = ++clipboardRequest
@@ -65,8 +65,7 @@ async function save() {
   try {
     const [title, body] = splitText(text.value)
     if (kind.value === 'task') await services.tasks.create({ title, description: body } as never)
-    else if (kind.value === 'note') await services.notes.create({ title, body } as never)
-    else await services.snippets.create({ title: title || 'Untitled snippet', code: text.value.trim(), language: 'text' } as never)
+    else await services.notes.create({ title, body } as never)
     bus.emit('toast', { type: 'success', message: `${labels[kind.value]} captured.` })
     close()
   } catch (e) {
@@ -111,7 +110,7 @@ onUnmounted(() => {
           </UButton>
         </div>
         <UFieldGroup class="mt-4">
-          <UButton v-for="item in (['task', 'note', 'snippet'] as CaptureKind[])" :key="item" type="button" color="neutral" :variant="kind === item ? 'solid' : 'outline'" @click="kind = item">
+          <UButton v-for="item in (['task', 'note'] as CaptureKind[])" :key="item" type="button" color="neutral" :variant="kind === item ? 'solid' : 'outline'" @click="kind = item">
             {{ labels[item] }}
           </UButton>
         </UFieldGroup>
@@ -120,7 +119,7 @@ onUnmounted(() => {
           autofocus
           rows="7"
           class="mt-4 w-full resize-y rounded-md border border-default bg-default p-3 text-sm outline-none focus:border-primary"
-          :placeholder="kind === 'snippet' ? 'Paste code or text…' : 'Title\nOptional details…'"
+          placeholder="Title\nOptional details…"
           @input="clipboardPrefilled = false"
           @keydown.meta.enter.prevent="save"
           @keydown.ctrl.enter.prevent="save"

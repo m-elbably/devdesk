@@ -24,6 +24,7 @@ import { TOOL_UI, type Field } from './ui-spec'
 import { services } from '@/services'
 import { desktop } from '@/services/desktop'
 import { bus } from '@/lib/events'
+import { snippetMarkdown } from '@/lib/snippetMigration'
 import { redactText } from '@/lib/redactText'
 
 const props = defineProps<{ toolId: string }>()
@@ -638,13 +639,12 @@ async function saveRecipe() {
 async function saveAsSnippet() {
   if (!meta.value || !copyText.value) return
   try {
-    await services.snippets.create({
+    await services.notes.create({
       title: `${meta.value.name} output`,
-      code: copyText.value,
-      language: spec.value?.language ?? 'text',
+      body: snippetMarkdown(spec.value?.language ?? 'text', copyText.value),
       tags: [],
     } as never)
-    bus.emit('toast', { type: 'success', message: `Saved to snippets as "${meta.value.name} output".` })
+    bus.emit('toast', { type: 'success', message: `Saved as a code note: "${meta.value.name} output".` })
   } catch (e) {
     bus.emit('toast', { type: 'error', message: e instanceof Error ? e.message : 'Could not save snippet.' })
   }
@@ -920,8 +920,8 @@ defineExpose({ resetModel, loadModel })
               variant="ghost"
               size="xs"
               icon="i-lucide-scissors"
-              title="Save this output as a snippet"
-              aria-label="Save this output as a snippet"
+              title="Save this output as a code note"
+              aria-label="Save this output as a code note"
               @click="saveAsSnippet"
             />
             <UDropdownMenu

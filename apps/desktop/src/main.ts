@@ -9,6 +9,8 @@ import { reloadWorkspaces } from './services/workspace'
 import { startSync } from './services/sync'
 import { initDesktop } from './services/desktop'
 import { bus } from './lib/events'
+import { migrateLegacySnippets } from './lib/snippetMigration'
+import 'katex/dist/katex.min.css'
 import './style.css'
 
 // Suppress the native webview's right-click menu everywhere (reload/back/etc. have
@@ -29,7 +31,7 @@ window.addEventListener('contextmenu', (e) => {
 // Populate the tool registry, init native runtime, ensure the default workspace exists.
 registerBuiltinTools()
 void initDesktop()
-void services.bootstrap().then(reloadWorkspaces)
+void services.bootstrap().then(() => migrateLegacySnippets()).then(reloadWorkspaces)
 startSync()
 
 const app = createApp(App).use(VueQueryPlugin).use(ui)

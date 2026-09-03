@@ -1,4 +1,4 @@
-import type { Task, Note, Snippet, Workspace, Setting, TaskStatus } from '@devdesk/shared'
+import type { Task, Note, Notebook, Snippet, Workspace, Setting, TaskStatus } from '@devdesk/shared'
 import { newId, nowIso } from '@devdesk/utils'
 import { BaseRepository, type NewData } from './base-repository'
 import {
@@ -40,6 +40,12 @@ export class TaskRepository extends BaseRepository<Task> {
 export class NoteRepository extends BaseRepository<Note> {
   byTask(taskId: string): Promise<Note[]> {
     return this.table.where('taskId').equals(taskId).filter((n) => n.deletedAt === null).toArray()
+  }
+}
+
+export class NotebookRepository extends BaseRepository<Notebook> {
+  children(parentId: string | null): Promise<Notebook[]> {
+    return this.table.filter((notebook) => notebook.parentId === parentId && notebook.deletedAt === null).toArray()
   }
 }
 
@@ -190,6 +196,7 @@ export function createRepositories(database: DevDeskDB = sharedDb) {
     workspaces: new WorkspaceRepository(database.workspaces),
     tasks: new TaskRepository(database.tasks),
     notes: new NoteRepository(database.notes),
+    notebooks: new NotebookRepository(database.notebooks),
     snippets: new SnippetRepository(database.snippets),
     settings: new SettingRepository(database.settings),
     favorites: new FavoriteRepository(database),

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, h, onMounted, onUnmounted, ref } from 'vue'
 import { Link } from '@tanstack/vue-router'
-import { AlertTriangle, Calendar, CheckCircle2, Loader, StickyNote, Code2 } from 'lucide-vue-next'
-import type { Note, Snippet, Task, ToolDefinition } from '@devdesk/shared'
+import { AlertTriangle, Calendar, CheckCircle2, Loader, StickyNote } from 'lucide-vue-next'
+import type { Note, Task, ToolDefinition } from '@devdesk/shared'
 import { BOARD_COLUMNS } from '@devdesk/shared'
 import { getActiveWorkspaceId } from '@devdesk/database'
 import { getTool } from '@devdesk/tools'
@@ -25,19 +25,16 @@ const AppIcon = () =>
 
 const tasks = ref<Task[]>([])
 const notes = ref<Note[]>([])
-const snippets = ref<Snippet[]>([])
 const recentTools = ref<ToolDefinition[]>([])
 
 async function reload() {
-  const [t, n, s, r] = await Promise.all([
+  const [t, n, r] = await Promise.all([
     services.tasks.byWorkspace(getActiveWorkspaceId()),
     services.notes.list(),
-    services.snippets.list(),
     services.preferences.recent.list(),
   ])
   tasks.value = t
   notes.value = n
-  snippets.value = s
   recentTools.value = r.map((x) => getTool(x.toolId)).filter((x): x is ToolDefinition => !!x).slice(0, 3)
 }
 
@@ -56,7 +53,6 @@ const stats = computed(() => [
   { label: 'In progress', value: tasks.value.filter((t) => t.status === 'in_progress').length, icon: Loader, to: '/board', tone: 'text-primary' },
   { label: 'Overdue', value: overdue.value.length, icon: AlertTriangle, to: '/board', tone: overdue.value.length ? 'text-error' : 'text-default/40' },
   { label: 'Notes', value: notes.value.length, icon: StickyNote, to: '/notes', tone: 'text-default/60' },
-  { label: 'Snippets', value: snippets.value.length, icon: Code2, to: '/snippets', tone: 'text-default/60' },
 ])
 
 // `info` resolves to the same blue as `primary` in this app's palette, so the

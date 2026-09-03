@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { Workspace, Task, Note, Snippet, Setting, SyncOperation } from '@devdesk/shared'
+import type { Workspace, Task, Note, Notebook, Snippet, Setting, SyncOperation } from '@devdesk/shared'
 
 // Local-only records (never synced in v1) — favorites, recent tools and tool history.
 export interface Favorite {
@@ -73,6 +73,7 @@ export class DevDeskDB extends Dexie {
   workspaces!: Table<Workspace, string>
   tasks!: Table<Task, string>
   notes!: Table<Note, string>
+  notebooks!: Table<Notebook, string>
   snippets!: Table<Snippet, string>
   settings!: Table<Setting, string>
   favorites!: Table<Favorite, string>
@@ -117,12 +118,34 @@ export class DevDeskDB extends Dexie {
       task.dueDate ??= null
       task.position ??= 0
     }))
-    // AI providers and conversations. Both local-only: they hold API keys and
-    // whatever the user pasted into a thread, and neither is in EntityKind.
     this.version(3).stores({
       workspaces: 'id, updatedAt, deletedAt',
       tasks: 'id, workspaceId, [workspaceId+status], status, position, dueDate, updatedAt, deletedAt',
-      notes: 'id, workspaceId, taskId, updatedAt, deletedAt',
+      notes: 'id, workspaceId, [workspaceId+notebookId], notebookId, taskId, updatedAt, deletedAt',
+      notebooks: 'id, workspaceId, parentId, updatedAt, deletedAt',
+      // Keep this store until every synced legacy snippet has been tombstoned.
+      snippets: 'id, workspaceId, taskId, language, updatedAt, deletedAt',
+      settings: 'id, &key, updatedAt, deletedAt',
+      favorites: 'toolId, createdAt',
+      recentTools: 'toolId, lastUsedAt',
+      toolHistory: 'id, toolId, [toolId+createdAt], createdAt',
+      syncQueue: 'id, kind, entityId, createdAt',
+    }).upgrade((tx) => tx.table('notes').toCollection().modify((note) => {
+      note.notebookId ??= null
+      note.isProtected ??= false
+      note.encrypted ??= null
+    }))
+    // AI providers and conversations. Both local-only: they hold API keys and
+    // whatever the user pasted into a thread, and neither is in EntityKind.
+    //
+    // v4 rather than v3: the notebooks release above already shipped as 3, so
+    // reusing that number would leave two different schemas claiming one version —
+    // installs that already upgraded would never run this one.
+    this.version(4).stores({
+      workspaces: 'id, updatedAt, deletedAt',
+      tasks: 'id, workspaceId, [workspaceId+status], status, position, dueDate, updatedAt, deletedAt',
+      notes: 'id, workspaceId, [workspaceId+notebookId], notebookId, taskId, updatedAt, deletedAt',
+      notebooks: 'id, workspaceId, parentId, updatedAt, deletedAt',
       snippets: 'id, workspaceId, taskId, language, updatedAt, deletedAt',
       settings: 'id, &key, updatedAt, deletedAt',
       favorites: 'toolId, createdAt',

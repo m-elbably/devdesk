@@ -32,6 +32,7 @@ export interface SyncedRecord {
 export const WorkspaceHome = z.object({
   toolIds: z.array(z.string()).default([]),
   noteIds: z.array(z.string()).default([]),
+  /** Legacy pins are folded into noteIds during the snippets → notes migration. */
   snippetIds: z.array(z.string()).default([]),
 })
 export type WorkspaceHome = z.infer<typeof WorkspaceHome>
@@ -70,8 +71,24 @@ export const Note = z.object({
   body: z.string().default(''),
   tags: z.array(z.string()).default([]),
   taskId: z.string().nullable().default(null),
+  notebookId: z.string().nullable().default(null),
+  isProtected: z.boolean().default(false),
+  /** Browser-encrypted note fields. Plain records always keep this null. */
+  encrypted: z.object({
+    version: z.literal(2),
+    keyHash: z.string(),
+    iv: z.string(),
+    ciphertext: z.string(),
+  }).nullable().default(null),
 })
 export type Note = z.infer<typeof Note>
+
+export const Notebook = z.object({
+  ...syncedFields,
+  name: z.string().min(1).max(120),
+  parentId: z.string().nullable().default(null),
+})
+export type Notebook = z.infer<typeof Notebook>
 
 export const Snippet = z.object({
   ...syncedFields,
@@ -84,7 +101,8 @@ export const Snippet = z.object({
 export type Snippet = z.infer<typeof Snippet>
 
 /** All entity kinds that participate in sync. Used as the discriminator in the sync queue. */
-export const EntityKind = z.enum(['workspace', 'task', 'note', 'snippet', 'setting'])
+// `snippet` remains only to receive/tombstone legacy records during migration.
+export const EntityKind = z.enum(['workspace', 'task', 'note', 'notebook', 'snippet', 'setting'])
 export type EntityKind = z.infer<typeof EntityKind>
 
 export const Setting = z.object({

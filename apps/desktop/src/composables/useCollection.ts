@@ -3,7 +3,7 @@ import type { EntityKind } from '@devdesk/shared'
 import { bus } from '@/lib/events'
 
 /**
- * Generic loader for a list-backed feature (notes, snippets). Loads via `load`
+ * Generic loader for a list-backed feature. Loads via `load`
  * and refreshes whenever a matching entity mutates. `searchText` drives filtering.
  */
 export function useCollection<T extends { id: string }>(

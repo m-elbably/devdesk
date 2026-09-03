@@ -24,9 +24,18 @@ beforeEach(async () => {
 })
 
 describe('the AI tables are local-only', () => {
-  it('exists at schema version 3', async () => {
-    expect(db.verno).toBe(3)
+  it('exists at schema version 4', async () => {
+    // v3 is the notebooks release. Reusing that number would leave two schemas
+    // claiming one version, and installs already on 3 would never run this upgrade.
+    expect(db.verno).toBe(4)
     expect(db.tables.map((t) => t.name)).toEqual(expect.arrayContaining(['aiProviders', 'aiConversations']))
+  })
+
+  it('keeps the notebooks store the previous version introduced', async () => {
+    // The v4 store map restates every table; dropping one here would delete it.
+    expect(db.tables.map((t) => t.name)).toEqual(
+      expect.arrayContaining(['workspaces', 'tasks', 'notes', 'notebooks', 'snippets', 'settings', 'syncQueue']),
+    )
   })
 
   it('writes nothing to the sync queue', async () => {

@@ -711,8 +711,8 @@ describe('math tools', () => {
     const out = rows(eta, { total: 100, done: 25, elapsed: 10, elapsedUnit: 'minutes' })
     expect(out.Remaining).toBe('30m')
     // The progress bar parses these two rows — they have to be real dates.
-    expect(Number.isNaN(Date.parse(String(out.Started)))).toBe(false)
-    expect(Number.isNaN(Date.parse(String(out['Finishes at'])))).toBe(false)
+    expect(Number.isNaN(Date.parse(out.Started ?? ''))).toBe(false)
+    expect(Number.isNaN(Date.parse(out['Finishes at'] ?? ''))).toBe(false)
   })
 
   it('byte converter switches base and shows both human forms', () => {

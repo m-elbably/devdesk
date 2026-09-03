@@ -24,7 +24,8 @@ const routes = [
   route('/workspace', lazy(() => import('@/features/workspace/WorkspaceHomePage.vue'))),
   route('/board', lazy(() => import('@/features/board/BoardPage.vue'))),
   route('/notes', lazy(() => import('@/features/notes/NotesPage.vue'))),
-  route('/snippets', lazy(() => import('@/features/snippets/SnippetsPage.vue'))),
+  // Compatibility route for bookmarks; snippets are now Notes.
+  route('/snippets', lazy(() => import('@/features/notes/SnippetsRedirect.vue'))),
   route('/favorites', lazy(() => import('@/features/favorites/FavoritesPage.vue'))),
   route('/recent', lazy(() => import('@/features/recent/RecentPage.vue'))),
   route('/settings', lazy(() => import('@/features/settings/SettingsPage.vue'))),
