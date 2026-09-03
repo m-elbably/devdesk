@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // DOM stays in `lib` even though this runs under Node: @devdesk/tools types a
+    // key pair as `CryptoKeyPair`, a WebCrypto type declared there. Node 22 provides
+    // the same API on `globalThis.crypto`, so this is a typings gap, not a runtime one.
+    "types": ["node"]
+  },
+  "include": ["src"]
+}
