@@ -1,6 +1,6 @@
 import type { Note, Snippet, Task, Workspace } from '@devdesk/shared'
 
-const esc = (text: string) => text.replace(/([\\`*_{}\[\]<>()#+.!|-])/g, '\\$1')
+const esc = (text: string) => text.replace(/([\\`*_{}[\]<>()#+.!|-])/g, '\\$1')
 
 function tags(tags: string[]): string {
   return tags.length ? ` — ${tags.map((tag) => `#${tag}`).join(' ')}` : ''
@@ -25,7 +25,7 @@ export function exportWorkspaceMarkdown(workspace: Workspace, tasks: Task[], not
 
   lines.push('## Snippets', '')
   for (const snippet of snippets) {
-    lines.push(`### ${snippet.title || 'Untitled snippet'}${tags(snippet.tags)}`, '', `\`\`\`${snippet.language}`, snippet.code, '\`\`\`', '')
+    lines.push(`### ${snippet.title || 'Untitled snippet'}${tags(snippet.tags)}`, '', `\`\`\`${snippet.language}`, snippet.code, '```', '')
   }
   if (!snippets.length) lines.push('_No snippets._', '')
 
