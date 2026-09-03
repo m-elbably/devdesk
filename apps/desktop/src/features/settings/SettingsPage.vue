@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import PageShell from '@/components/PageShell.vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
+import AiProvidersCard from './AiProvidersCard.vue'
 import { ErrorState } from '@devdesk/ui'
 import { syncUser, syncStatus, login, logout, syncNow, serverUrl, setServerUrl } from '@/services/sync'
 import { desktop } from '@/services/desktop'
@@ -25,6 +26,7 @@ const SHORTCUTS = [
   { keys: [MOD, 'K'], label: 'Open command palette' },
   { keys: [MOD, 'W'], label: 'Switch workspace' },
   { keys: [MOD, 'S'], label: 'Save note or snippet' },
+  { keys: [MOD, 'I'], label: 'Open AI assistant' },
   { keys: ['Esc'], label: 'Close dialog or menu' },
 ]
 
@@ -361,6 +363,8 @@ async function signIn() {
           <ErrorState v-if="serverUrlError" :message="serverUrlError" class="pt-2" />
         </div>
       </UCard>
+
+      <AiProvidersCard />
 
       <UCard>
         <template #header>

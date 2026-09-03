@@ -59,6 +59,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.43.6
         version: 6.43.6
+      '@devdesk/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@devdesk/database':
         specifier: workspace:*
         version: link:../../packages/database
