@@ -1,5 +1,12 @@
 import { stepCountIs, streamText } from 'ai'
 import type { LanguageModel, ModelMessage } from 'ai'
+
+/**
+ * Re-exported so consumers describe a conversation without depending on `ai`
+ * directly — the same boundary `@devdesk/tools` keeps, and one pnpm's strict
+ * linking enforces anyway.
+ */
+export type { LanguageModel, ModelMessage }
 import { buildToolbelt } from './toolbelt'
 import type { Toolbelt, ToolUiHints } from './toolbelt'
 import type { Locality } from './types'

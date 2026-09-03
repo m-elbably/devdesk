@@ -8,6 +8,7 @@ import ThemeSwitcher from './ThemeSwitcher.vue'
 import { useOnline } from '@/composables/useOnline'
 import { syncStatus } from '@/services/sync'
 import { activeWorkspace } from '@/services/workspace'
+import { assistantOpen, toggleAssistant } from '@/features/assistant/state'
 
 const { online } = useOnline()
 
@@ -104,6 +105,15 @@ const openQuickCapture = () => window.dispatchEvent(new CustomEvent('devdesk:qui
     </UButton>
 
     <UButton color="neutral" variant="ghost" icon="i-lucide-plus" title="Quick capture (Ctrl+Shift+Space)" aria-label="Quick capture" @click="openQuickCapture" />
+
+    <UButton
+      :color="assistantOpen ? 'primary' : 'neutral'"
+      :variant="assistantOpen ? 'subtle' : 'ghost'"
+      icon="i-lucide-sparkles"
+      title="AI assistant (Ctrl+I)"
+      aria-label="AI assistant"
+      @click="toggleAssistant"
+    />
 
     <UTooltip text="Switch workspace (Ctrl+W)">
       <button type="button" class="shrink-0" @click="openWorkspaceSwitcher">

@@ -18,6 +18,8 @@ import ChmodGrid from './ChmodGrid.vue'
 import SubnetMap from './SubnetMap.vue'
 import Histogram from './Histogram.vue'
 import RatioBox from './RatioBox.vue'
+import { assistantToolInput } from '@/features/assistant/toolHandoff'
+import { offerContext } from '@/features/assistant/usePageContext'
 import { TOOL_UI, type Field } from './ui-spec'
 import { services } from '@/services'
 import { desktop } from '@/services/desktop'
@@ -216,6 +218,19 @@ async function execute() {
 onMounted(() => {
   if (!spec.value?.manual) void execute()
 })
+
+// "Open in tool" on an assistant tool card. Immediate, because the click navigates
+// here and this page usually mounts *after* the request is set; the nonce makes
+// opening the same tool twice fire again.
+watch(
+  assistantToolInput,
+  (request) => {
+    if (!request || request.toolId !== props.toolId) return
+    assistantToolInput.value = null
+    loadModel(request.input)
+  },
+  { immediate: true },
+)
 watch(model, () => {
   if (!spec.value?.manual) void execute()
 })
@@ -226,6 +241,21 @@ const tickTimer = setInterval(() => {
   if (spec.value?.liveTick && !spec.value.manual) void execute()
 }, 1000)
 onUnmounted(() => clearInterval(tickTimer))
+
+// Offer this tool's current input to the assistant. An offer is not a send: the
+// chip has to be clicked, and the panel refuses page context entirely for a cloud
+// provider. Withdrawn on unmount so it never outlives the page it describes.
+const withdrawContext = offerContext({
+  id: 'tool-input',
+  label: 'This tool’s input',
+  get text() {
+    return Object.entries(model)
+      .filter(([, value]) => value !== '' && value !== false && value != null)
+      .map(([key, value]) => `${key}: ${String(value)}`)
+      .join('\n')
+  },
+})
+onUnmounted(withdrawContext)
 
 // Reset everything when navigating between tools.
 watch(

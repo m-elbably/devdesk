@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { defineAsyncComponent, ref, watch } from 'vue'
 import { Outlet, useRouterState } from '@tanstack/vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import AppHeader from '@/components/AppHeader.vue'
@@ -9,6 +9,13 @@ import ToastContainer from '@/components/ToastContainer.vue'
 import EditContextMenu from '@/components/EditContextMenu.vue'
 import QuickCapture from '@/components/QuickCapture.vue'
 import { LayoutPanelLeft } from 'lucide-vue-next'
+import { assistantOpen, useAssistantShortcut } from '@/features/assistant/state'
+
+// Async, and only rendered once opened: the panel pulls in the AI SDK, and an app
+// the user never asks a question in should not pay for it at startup.
+const AssistantPanel = defineAsyncComponent(() => import('@/features/assistant/AssistantPanel.vue'))
+
+useAssistantShortcut()
 
 // Sidebar is a fixed rail on lg+; below lg it lives in a slide-over opened by
 // the hamburger, and closes on navigation.
@@ -46,6 +53,8 @@ watch(
         <Sidebar :collapsible="false" class="w-full border-r-0" />
       </template>
     </USlideover>
+
+    <AssistantPanel v-if="assistantOpen" />
 
     <CommandPalette />
     <QuickCapture />

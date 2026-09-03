@@ -19,7 +19,8 @@
     "window.*",
     "storage.*",
     "filesystem.readFile",
-    "filesystem.writeFile"
+    "filesystem.writeFile",
+    "net.request"
   ],
   "modes": {
     "window": {

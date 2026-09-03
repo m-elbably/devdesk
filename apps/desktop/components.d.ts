@@ -37,6 +37,7 @@ declare module 'vue' {
     UFormField: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/FormField.vue')['default']
     UIcon: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/vue/components/Icon.vue')['default']
     UInput: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/Input.vue')['default']
+    UInputMenu: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/InputMenu.vue')['default']
     UKbd: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/Kbd.vue')['default']
     UListbox: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/Listbox.vue')['default']
     UModal: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/Modal.vue')['default']
@@ -44,6 +45,7 @@ declare module 'vue' {
     USelectMenu: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/SelectMenu.vue')['default']
     USkeleton: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/Skeleton.vue')['default']
     USlideover: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/Slideover.vue')['default']
+    UTextarea: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/Textarea.vue')['default']
     UTooltip: typeof import('./../../node_modules/.pnpm/@nuxt+ui@4.10.0_40d50358c76714c7575062e9dde8feb7/node_modules/@nuxt/ui/dist/runtime/components/Tooltip.vue')['default']
     WorkspaceSwitcher: typeof import('./src/components/WorkspaceSwitcher.vue')['default']
   }
