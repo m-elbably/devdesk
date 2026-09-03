@@ -23,7 +23,9 @@
   <a href="#architecture">Architecture</a> ·
   <a href="#development">Development</a> ·
   <a href="docs/adding-a-tool.md">Add a tool</a> ·
-  <a href="docs/self-hosting.md">Self-hosting sync</a>
+  <a href="docs/self-hosting.md">Self-hosting sync</a> ·
+  <a href="docs/ai.md">AI assistant</a> ·
+  <a href="docs/mcp.md">MCP server</a>
 </p>
 
 <p align="center">
@@ -32,11 +34,12 @@
 
 ## Why DevDesk
 
-- **Nothing leaves your machine.** Every tool runs locally; data lives in IndexedDB. No network call is made unless you turn on sync.
-- **Privacy is enforced, not promised.** Each tool declares a privacy level — `PUBLIC`, `LOCAL_ONLY` or `NEVER_PERSIST`. A `NEVER_PERSIST` tool (JWT parser, encryption) can't write history to disk even if it wanted to.
+- **Nothing leaves your machine.** Every tool runs locally; data lives in IndexedDB. No network call is made unless you turn on sync or configure an AI provider — and the AI providers DevDesk sets up for you are ones running on your own machine.
+- **Privacy is enforced, not promised.** Each tool declares a privacy level — `PUBLIC`, `LOCAL_ONLY` or `NEVER_PERSIST`. A `NEVER_PERSIST` tool (JWT parser, encryption) can't write history to disk even if it wanted to. The same levels decide what an AI model may touch: a local model gets the whole toolbox, a cloud model only the tools that cannot leak a secret.
 - **One window instead of thirty tabs.** JSON, crypto, networking, images, dates and more, next to the tasks, notes and snippets that go with them.
 - **Sync only if you want it.** Optional, self-hosted, one Cloudflare Worker + D1 — free tier is plenty. There is no hosted DevDesk server.
 - **Genuinely extensible.** A tool is a pure function plus one metadata entry — the UI is generated. See [adding a tool](docs/adding-a-tool.md).
+- **An assistant that doesn't guess.** Ask in plain English; the model picks the tool and DevDesk runs the real implementation. No hallucinated CIDR maths. See [AI assistant](docs/ai.md).
 
 ## Install
 
@@ -83,11 +86,13 @@ DevDesk is a **plugin platform**, not a set of pages. The boundaries that matter
 apps/
   desktop/     Vue 3 + Vite + Tailwind + Nuxt UI + TanStack Router. Neutralino shell.
   sync-api/    Hono worker on Cloudflare Workers + D1. Auth + sync endpoints.
+  mcp-server/  The toolbox over MCP stdio, for external agents.
 packages/
   shared/      Types, Zod schemas, constants (the contract everything shares).
   tools/       Pure, headless tool logic + the plugin registry. No Vue, no DOM.
   database/    Dexie schema + repositories (local persistence).
   sync/        Framework-independent sync engine + API client.
+  ai/          Providers, transports, and the tool privacy gate. No Vue, no DOM.
   ui/          Reusable Vue components (dialogs, feedback, badges).
   utils/       Small framework-independent helpers.
 ```
@@ -101,6 +106,16 @@ Switching reloads the window — the simplest way to guarantee every open view r
 
 The first run creates a `Personal` workspace (id `default`). The choice is stored per-install in
 `localStorage`; if it points at a workspace that no longer exists, the app falls back to `default`.
+
+### AI model
+
+Optional and off until configured. Providers are stored in a local-only table that sync never sees,
+and API keys are stripped from database backups. Whether a provider is local is derived from its URL,
+never from what its config claims, and it fails closed — anything not provably on this machine counts
+as remote, and a remote model is only ever offered `PUBLIC` tools.
+
+The model chooses the tool and its arguments; the tool computes the answer. See [docs/ai.md](docs/ai.md),
+and [docs/mcp.md](docs/mcp.md) for pointing an external agent at the same toolbox.
 
 ### Sync model
 
