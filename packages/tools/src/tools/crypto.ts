@@ -532,8 +532,15 @@ export const encryptionTool: ToolPlugin = {
     const { text, secret, algorithm, mode } = cipherSchema.parse(input)
     const cipher = CIPHERS[algorithm]
     if (mode === 'encrypt') return cipher.encrypt(text, secret).toString()
-    const out = cipher.decrypt(text, secret).toString(CryptoJS.enc.Utf8)
-    // Wrong secret/algorithm yields empty (or throws on malformed input) — surface a clear error.
+    // A wrong secret/algorithm either decodes to empty or makes the Utf8 decoder throw
+    // ("Malformed UTF-8 data") depending on what the garbage bytes happen to be. Both
+    // mean the same thing to the user, so both surface as one clear error.
+    let out: string
+    try {
+      out = cipher.decrypt(text, secret).toString(CryptoJS.enc.Utf8)
+    } catch {
+      out = ''
+    }
     if (!out) throw new Error('Could not decrypt — check the algorithm and secret.')
     return out
   },
