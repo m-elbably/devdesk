@@ -1,7 +1,15 @@
 import type { Task, Note, Snippet, Workspace, Setting, TaskStatus } from '@devdesk/shared'
 import { newId, nowIso } from '@devdesk/utils'
 import { BaseRepository, type NewData } from './base-repository'
-import { db as sharedDb, type DevDeskDB, type Favorite, type RecentTool, type ToolHistoryEntry } from './db'
+import {
+  db as sharedDb,
+  type AiConversationRow,
+  type AiProviderRow,
+  type DevDeskDB,
+  type Favorite,
+  type RecentTool,
+  type ToolHistoryEntry,
+} from './db'
 import { RECENT_TOOLS_LIMIT, TOOL_HISTORY_LIMIT } from '@devdesk/shared'
 
 export class WorkspaceRepository extends BaseRepository<Workspace> {
@@ -108,6 +116,74 @@ export class ToolHistoryRepository {
   }
 }
 
+/**
+ * Local-only: configured AI providers, API keys included.
+ *
+ * Not a `BaseRepository`: that base is for synced entities, and inheriting it would
+ * put these rows a short step away from the sync queue. Plain class, plain table,
+ * the same shape `FavoriteRepository` uses for the same reason.
+ */
+export class AiProviderRepository {
+  constructor(private readonly db: DevDeskDB) {}
+
+  list(): Promise<AiProviderRow[]> {
+    return this.db.aiProviders.toArray()
+  }
+
+  get(id: string): Promise<AiProviderRow | undefined> {
+    return this.db.aiProviders.get(id)
+  }
+
+  async save(row: Omit<AiProviderRow, 'createdAt' | 'updatedAt'> & Partial<Pick<AiProviderRow, 'createdAt'>>): Promise<AiProviderRow> {
+    const existing = await this.db.aiProviders.get(row.id)
+    const saved: AiProviderRow = {
+      ...row,
+      createdAt: existing?.createdAt ?? row.createdAt ?? nowIso(),
+      updatedAt: nowIso(),
+    }
+    await this.db.aiProviders.put(saved)
+    return saved
+  }
+
+  async remove(id: string): Promise<void> {
+    // Hard delete, not the soft delete synced entities use: there is no peer to tell
+    // about the removal, and a tombstone would only keep the API key on disk.
+    await this.db.aiProviders.delete(id)
+  }
+}
+
+/** Local-only: assistant conversations, newest first. */
+export class AiConversationRepository {
+  constructor(private readonly db: DevDeskDB) {}
+
+  list(): Promise<AiConversationRow[]> {
+    return this.db.aiConversations.orderBy('updatedAt').reverse().toArray()
+  }
+
+  get(id: string): Promise<AiConversationRow | undefined> {
+    return this.db.aiConversations.get(id)
+  }
+
+  async save(row: Omit<AiConversationRow, 'createdAt' | 'updatedAt'> & Partial<Pick<AiConversationRow, 'createdAt'>>): Promise<AiConversationRow> {
+    const existing = await this.db.aiConversations.get(row.id)
+    const saved: AiConversationRow = {
+      ...row,
+      createdAt: existing?.createdAt ?? row.createdAt ?? nowIso(),
+      updatedAt: nowIso(),
+    }
+    await this.db.aiConversations.put(saved)
+    return saved
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.db.aiConversations.delete(id)
+  }
+
+  async clear(): Promise<void> {
+    await this.db.aiConversations.clear()
+  }
+}
+
 /** Bundle of every repository, bound to one database instance. */
 export function createRepositories(database: DevDeskDB = sharedDb) {
   return {
@@ -119,6 +195,8 @@ export function createRepositories(database: DevDeskDB = sharedDb) {
     favorites: new FavoriteRepository(database),
     recentTools: new RecentToolRepository(database),
     toolHistory: new ToolHistoryRepository(database),
+    aiProviders: new AiProviderRepository(database),
+    aiConversations: new AiConversationRepository(database),
   }
 }
 
